@@ -83,7 +83,7 @@ current versions slows down the mouse, like using low dpi, but is otherwise quit
 - [x] pass through mouse scrolling event
 - [x] fix repeating middle and right clicks
 - [ ] add scroll-chording (middle + scroll)
-- [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent() (should be faster)
-- [ ] use x11 api to grap events (or `xdo` library), instead of relying on `evtest` (should be faster)
+- [ ] get Xtest extension and replace xdotool with `XTestFake*` functions (or `xdo` library) (should be faster)
+- [ ] use x11 api to grap events, instead of relying on `evtest` (should be faster)
 - [ ] add config file for specifying chords and commands (more customizable)
 - [ ] clean up code
