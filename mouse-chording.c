@@ -156,7 +156,10 @@ int main(int argc, char * argv[])
             }
 
             if (debug || verbose)
-                printf("mouse_button_state: %011b\nmouse_chord_active: %d\n", mouse_button_state, mouse_chord_active);
+                printf("mouse_button_state: %011b\n", mouse_button_state);
+
+            if (debug)
+                printf("mouse_chord_active: %d\n", mouse_chord_active);
 
             // check for chording combos and run commands
             if (button_action == ButtonPress)
@@ -169,6 +172,7 @@ int main(int argc, char * argv[])
                     printf("mouse click\n button: %d\nstate: %d\n", button_code, button_action);
 
                 char *cmd[32];
+                sprintf(cmd, "");
                 if (mouse_chord_active == 0 
                  && button_code == 1 
                  && button_action == ButtonPress)
@@ -176,11 +180,17 @@ int main(int argc, char * argv[])
                     sprintf(cmd, "xdotool mousedown %d\n", button_code);
                 }
                 else if (button_code == 1)
+                {
                     sprintf(cmd, "xdotool mouseup %d\n", button_code);
+                }
                 else if (mouse_chord_active == 0
+                 && mouse_button_state == 0
                  && button_action == ButtonRelease)
+                {
                     sprintf(cmd, "xdotool click %d\n", button_code);
-                system(cmd);
+                }
+                if (strlen(cmd) > 0)
+                    system(cmd);
             }
 
             // reset when all buttons are released
@@ -221,7 +231,8 @@ int main(int argc, char * argv[])
 
             if (scroll_value != 0)
             {
-                char *cmd[20];
+                char *cmd[32];
+                printf("scroll %s\n", scroll_value == -1 ? "down" : "up");
                 sprintf(cmd, "xdotool click %d &", scroll_value == -1 ? 5 : 4);
                 system(cmd);
             }
@@ -249,13 +260,13 @@ int run_mouse_chord(int button)
         {
             if (debug || verbose)
                 printf("Middle + Left = Return\n");
-            system("echo xdotool key Return");
+            system("xdotool key Return");
         }
         else if (button == 2)
         {
             if (debug || verbose)
                 printf("Left + Middle = Snarf\n");
-            system("echo xdotool key ctrl+c key ctrl+x");
+            system("xdotool key ctrl+c key ctrl+x");
         }
         mouse_chord_active = 1;
         return 1;
@@ -269,13 +280,13 @@ int run_mouse_chord(int button)
         {
             if (debug || verbose)
                 printf("Right + Left = Undo\n");
-            system("echo xdotool key ctrl+z");
+            system("xdotool key ctrl+z");
         }
         else if (button == 3)
         {
             if (debug || verbose)
                 printf("Left + Right = Snarf\n");
-            system("echo xdotool key ctrl+v");
+            system("xdotool key ctrl+v");
         }
         mouse_chord_active = 1;
         return 1;
@@ -289,13 +300,13 @@ int run_mouse_chord(int button)
         {
             if (debug || verbose)
                 printf("Middle + Right = Space\n");
-            system("echo xdotool key Space");
+            system("xdotool key space");
         }
         else if (button == 2)
         {
             if (debug || verbose)
                 printf("Right + Middle = Redo\n");
-            system("echo xdotool key ctrl+shift+z");
+            system("xdotool key ctrl+shift+z");
         }
         mouse_chord_active = 1;
         return 1;
