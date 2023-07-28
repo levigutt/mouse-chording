@@ -7,6 +7,7 @@ _this requires some x11 development libraries_
 
 **2\.**
 run `sudo evtest` to get list of input devices
+
 in my case `/dev/input/event19` is the USB OPTICAL MOUSE, which I want to use for chording. 
 
 replace with appropriate input device for your setup in the `run.sh` script
