@@ -63,7 +63,7 @@ Middle + Left   = Back
 Middle + Right  = Forward
 ```
 
----
+## development
 
 borrowed mouseclick routine from here:
 https://snipplr.com/view/1599/xlib--mouseclick
@@ -77,6 +77,8 @@ using X11/extensions/Xtest.h provides a function `XTestFakeButtonEvent` which is
 
 current versions slows down the mouse, like using low dpi, but is otherwise quite usable. 
 
+we can probably avoid needing to replay mouse movements by changing from using `evtest` to simply using `XSelectInput` and `XGrabButton` as explained here: https://stackoverflow.com/a/10247776/1678383
+
 ## todo 
 
 - [x] fix bug where left mouse button is not released after chord
@@ -87,3 +89,5 @@ current versions slows down the mouse, like using low dpi, but is otherwise quit
 - [ ] use x11 api to grap events, instead of relying on `evtest` (should be faster)
 - [ ] add config file for specifying chords and commands (more customizable)
 - [ ] clean up code
+
+
