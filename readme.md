@@ -1,3 +1,18 @@
+## why? 
+
+my attempts at setting up mouse button chording on linux: 
+https://unix.stackexchange.com/q/751786/360766
+
+it turns out that while `xbindkeys` and `xdotool` are quite capable, they simply lack the featurset needed to replicate the exact setup that I'd gotten used to on Windows and MacOS.
+
+specifically, I want mouse chording using a three button mouse (not a special mouse with extra buttons), and I want to have the buttons keep their original function when used individually.
+
+`xbindkeys` will grab the mouse events, preventing the default actions. 
+
+`xdotool` cannot send a mouse event while the same event is in effect.
+
+neither tools can limit their function to a specific input device.
+
 ## how to use
 
 **1\.**
@@ -37,12 +52,16 @@ but it does not work right, I can't change active window and it wont let me resi
 switched to using xdotool as a system call, for now - atleast it works :p 
 
 using X11/extensions/Xtest.h should give us a FakeMouseClick function that is supposed to work better
+- https://bharathisubramanian.wordpress.com/2010/04/01/x11-fake-mouse-events-generation-using-xtest/
 
 current versions slows down the mouse, like using low dpi
 
 
 ## todo 
 
-- get Xtest and replace xdotool with XTestFakeButtonEvent()
-- use x11 api to grap events, instead of relying on `evtest` and a pipe
-- clean up code
+- [x] fix bug where left mouse button is not released after chord
+- [ ] pass through mouse scrolling event
+- [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent()
+- [ ] use x11 api to grap events, instead of relying on `evtest` and a pipe
+- [ ] add config file for specifying chords and commands
+- [ ] clean up code

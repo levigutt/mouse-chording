@@ -9,6 +9,7 @@
 
 char *read_line(char *buffer);
 //void mouseClick(int button, int type);
+int run_mouse_chord(int button);
 
 bool debug = false;
 bool verbose = true;
@@ -152,91 +153,37 @@ int main(int argc, char * argv[])
             }
 
             if (debug || verbose)
-                printf("mouse_button_state: %011b\n", mouse_button_state);
+                printf("mouse_button_state: %011b\nmouse_chord_active: %d\n", mouse_button_state, mouse_chord_active);
 
-            if (button_action == ButtonPress 
-             && mouse_button_state == (Button1Mask | Button2Mask))
-            {
-                if (debug)
-                    printf("matched state: %011b\n", Button1Mask | Button2Mask );
-                if (button_code == 1)
-                {
-                    if (debug || verbose)
-                        printf("Middle + Left = Return\n");
-                    system("echo xdotool key Return");
-                }
-                if (button_code == 2)
-                {
-                    if (debug || verbose)
-                        printf("Left + Middle = Snarf\n");
-                    system("echo xdotool key ctrl+c key ctrl+x");
-                }
-                mouse_chord_active = 1;
-            }
+            // check for chording combos and run commands
+            if (button_action == ButtonPress)
+                run_mouse_chord(button_code);
 
-            if (button_action == ButtonPress 
-             && mouse_button_state == (Button1Mask | Button3Mask))
-            {
-                //if (debug)
-                    printf("matched state: %011b\n", Button1Mask | Button3Mask );
-                if (button_code == 1)
-                {
-                    if (debug || verbose)
-                        printf("Right + Left = Undo\n");
-                    system("echo xdotool key ctrl+z");
-                }
-                if (button_code == 3)
-                {
-                    if (debug || verbose)
-                        printf("Left + Right = Snarf\n");
-                    system("echo xdotool key ctrl+v");
-                }
-                mouse_chord_active = 1;
-            }
-
-            if (button_action == ButtonPress 
-             && mouse_button_state == (Button2Mask | Button3Mask))
-            {
-                if (debug)
-                    printf("matched state: %011b\n", Button2Mask | Button3Mask );
-                if (button_code == 3)
-                {
-                    if (debug || verbose)
-                        printf("Middle + Right = Space\n");
-                    system("echo xdotool key Space");
-                }
-                if (button_code == 2)
-                {
-                    if (debug || verbose)
-                        printf("Right + Middle = Redo\n");
-                    system("echo xdotool key ctrl+shift+z");
-                }
-                mouse_chord_active = 1;
-            }
-
-
-            if (mouse_chord_active == 0 && button_code > 0)
+            // trigger default mouse events
+            if (button_code > 0)
             {
                 if (debug)
                     printf("mouse click\n button: %d\nstate: %d\n", button_code, button_action);
 
                 char *cmd[32];
-                if (button_code == 1 && button_action == ButtonPress)
+                if (mouse_chord_active == 0 
+                 && button_code == 1 
+                 && button_action == ButtonPress)
+                {
                     sprintf(cmd, "xdotool mousedown %d\n", button_code);
+                }
                 else if (button_code == 1)
                     sprintf(cmd, "xdotool mouseup %d\n", button_code);
-                else if (button_action == ButtonRelease)
+                else if (mouse_chord_active == 0
+                 && button_action == ButtonRelease)
                     sprintf(cmd, "xdotool click %d\n", button_code);
                 system(cmd);
-
-                // buggy: cannot resize or change active window
-                //mouseClick(button_code, button_action);
             }
 
+            // reset when all buttons are released
             if (mouse_chord_active && mouse_button_state == 0)
-            {
                 mouse_chord_active = 0;
-            }
+
         }
 
     }
@@ -246,6 +193,72 @@ int main(int argc, char * argv[])
 
     XCloseDisplay(dpy);
 
+    return 0;
+}
+
+
+// where the magic happens
+int run_mouse_chord(int button)
+{
+    if (mouse_button_state == (Button1Mask | Button2Mask))
+    {
+        if (debug)
+            printf("matched state: %011b\n", Button1Mask | Button2Mask );
+        if (button == 1)
+        {
+            if (debug || verbose)
+                printf("Middle + Left = Return\n");
+            system("echo xdotool key Return");
+        }
+        else if (button == 2)
+        {
+            if (debug || verbose)
+                printf("Left + Middle = Snarf\n");
+            system("echo xdotool key ctrl+c key ctrl+x");
+        }
+        mouse_chord_active = 1;
+        return 1;
+    }
+
+    if (mouse_button_state == (Button1Mask | Button3Mask))
+    {
+        //if (debug)
+            printf("matched state: %011b\n", Button1Mask | Button3Mask );
+        if (button == 1)
+        {
+            if (debug || verbose)
+                printf("Right + Left = Undo\n");
+            system("echo xdotool key ctrl+z");
+        }
+        else if (button == 3)
+        {
+            if (debug || verbose)
+                printf("Left + Right = Snarf\n");
+            system("echo xdotool key ctrl+v");
+        }
+        mouse_chord_active = 1;
+        return 1;
+    }
+
+    if (mouse_button_state == (Button2Mask | Button3Mask))
+    {
+        if (debug)
+            printf("matched state: %011b\n", Button2Mask | Button3Mask );
+        if (button == 3)
+        {
+            if (debug || verbose)
+                printf("Middle + Right = Space\n");
+            system("echo xdotool key Space");
+        }
+        else if (button == 2)
+        {
+            if (debug || verbose)
+                printf("Right + Middle = Redo\n");
+            system("echo xdotool key ctrl+shift+z");
+        }
+        mouse_chord_active = 1;
+        return 1;
+    }
     return 0;
 }
 
