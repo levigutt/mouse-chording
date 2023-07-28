@@ -1,4 +1,4 @@
-## why? 
+## why?
 
 my attempts at setting up mouse button chording on linux: 
 https://unix.stackexchange.com/q/751786/360766
@@ -12,6 +12,12 @@ specifically, I want mouse chording using a three button mouse (not a special mo
 `xdotool` cannot send a mouse event while the same event is in effect.
 
 neither tools can limit their function to a specific input device.
+
+## how it works
+
+this uses `evtest` to interrupts mouse events from a specified input device, and passes the event stream to the program which runs commands when chord combos are detected, or else recreates the mouse events.
+
+I haven't yet figured out all I need to fully utilize the X11 API - so many of the commands are done through xdotool. This makes it noticeably slow and unsuitable for gaming.
 
 ## how to use
 
@@ -75,8 +81,9 @@ current versions slows down the mouse, like using low dpi, but is otherwise quit
 
 - [x] fix bug where left mouse button is not released after chord
 - [x] pass through mouse scrolling event
+- [x] fix repeating middle and right clicks
 - [ ] add scroll-chording (middle + scroll)
-- [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent()
-- [ ] use x11 api to grap events, instead of relying on `evtest` and a pipe
-- [ ] add config file for specifying chords and commands
+- [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent() (should be faster)
+- [ ] use x11 api to grap events, instead of relying on `evtest` (should be faster)
+- [ ] add config file for specifying chords and commands (more customizable)
 - [ ] clean up code
