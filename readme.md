@@ -66,11 +66,10 @@ but it does not work right, I can't change active window and it wont let me resi
 
 switched to using xdotool as a system call, for now - atleast it works :p 
 
-using X11/extensions/Xtest.h should give us a FakeMouseClick function that is supposed to work better
+using X11/extensions/Xtest.h provides a function `XTestFakeButtonEvent` which is supposed to work better
 - https://bharathisubramanian.wordpress.com/2010/04/01/x11-fake-mouse-events-generation-using-xtest/
 
-current versions slows down the mouse, like using low dpi
-
+current versions slows down the mouse, like using low dpi, but is otherwise quite usable. 
 
 ## todo 
 
