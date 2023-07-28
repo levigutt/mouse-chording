@@ -17,7 +17,7 @@ neither tools can limit their function to a specific input device.
 
 this uses `evtest` to interrupts mouse events from a specified input device, and passes the event stream to the program which runs commands when chord combos are detected, or else recreates the mouse events.
 
-I haven't yet figured out all I need to fully utilize the X11 API - so many of the commands are done through xdotool. This makes it noticeably slow and unsuitable for gaming.
+I haven't yet figured out all I need to fully utilize the X11 API - so many of the commands are done through `xdotool`. This makes it noticeably slow and unsuitable for gaming.
 
 ## how to use
 
@@ -84,6 +84,6 @@ current versions slows down the mouse, like using low dpi, but is otherwise quit
 - [x] fix repeating middle and right clicks
 - [ ] add scroll-chording (middle + scroll)
 - [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent() (should be faster)
-- [ ] use x11 api to grap events, instead of relying on `evtest` (should be faster)
+- [ ] use x11 api to grap events (or `xdo` library), instead of relying on `evtest` (should be faster)
 - [ ] add config file for specifying chords and commands (more customizable)
 - [ ] clean up code
