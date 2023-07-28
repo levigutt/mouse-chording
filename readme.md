@@ -42,6 +42,21 @@ Right+Left    = Undo  (Ctrl+z)
 Right+Middle  = Redo  (Ctrl+Y / Ctrl+Shift+z)
 ```
 
+## chord ideas
+
+these are not yet implemented
+
+```
+Middle + Scroll = Switch app (Alt+Tab)
+Right  + Scroll = Clipboard menu (using dmenu, paste selection on release)??
+```
+
+decided against these, since they'd mainly be useful in the browser, which has prominent back and forward buttons in the gui (and one can use Ctrl+Z in the adress bar too)
+``` 
+Middle + Left   = Back
+Middle + Right  = Forward
+```
+
 ---
 
 borrowed mouseclick routine from here:
@@ -60,7 +75,8 @@ current versions slows down the mouse, like using low dpi
 ## todo 
 
 - [x] fix bug where left mouse button is not released after chord
-- [ ] pass through mouse scrolling event
+- [x] pass through mouse scrolling event
+- [ ] add scroll-chording (middle + scroll)
 - [ ] get Xtest extension and replace xdotool with XTestFakeButtonEvent()
 - [ ] use x11 api to grap events, instead of relying on `evtest` and a pipe
 - [ ] add config file for specifying chords and commands

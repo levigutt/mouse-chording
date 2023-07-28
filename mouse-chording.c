@@ -37,12 +37,15 @@ int main(int argc, char * argv[])
     // prepare regex matcher
     char *mouse_move_restr  = "type 2 [(]EV_REL[)], code [0-9] [(](REL_X|REL_Y)[)], value (-?[0-9]+)";
     char *mouse_click_restr = "type 1 [(]EV_KEY[)], code [0-9]+ [(](BTN_[A-Z]+)[)], value ([0-9])";
+    char *mouse_scroll_restr = "type 2 [(]EV_REL[)], code 8 [(]REL_WHEEL[)], value (-?[0-9]+)";
     size_t group_limit = 3;
     regmatch_t group_arr[group_limit];
     regex_t mouse_move_regex;
     regex_t mouse_click_regex;
-    if (regcomp(&mouse_move_regex, mouse_move_restr, REG_EXTENDED)
-     || regcomp(&mouse_click_regex, mouse_click_restr, REG_EXTENDED))
+    regex_t mouse_scroll_regex;
+    if (regcomp(&mouse_move_regex,   mouse_move_restr,   REG_EXTENDED)
+     || regcomp(&mouse_click_regex,  mouse_click_restr,  REG_EXTENDED)
+     || regcomp(&mouse_scroll_regex, mouse_scroll_restr, REG_EXTENDED))
     {
         fprintf(stderr, "Err: Failed to compile regex.\n");
         exit(1);
@@ -184,6 +187,44 @@ int main(int argc, char * argv[])
             if (mouse_chord_active && mouse_button_state == 0)
                 mouse_chord_active = 0;
 
+        }
+
+
+
+        // detect mouse scroll and pass through
+        if (regexec(&mouse_scroll_regex, line, group_limit, group_arr, 0) == 0)
+        {
+            unsigned int g = 0;
+            char line_copy[strlen(line) + 1];
+            strcpy(line_copy, line);
+
+            char *long_ptr2;
+            long scroll_value = 0;
+
+            for (g = 0; g < group_limit; g++)
+            {
+                if (group_arr[g].rm_so == (size_t)-1)
+                    break;
+
+                line_copy[group_arr[g].rm_eo] = 0;
+                if (debug)
+                    printf("Group %u: [%2u-%2u]: %s\n",
+                        g, group_arr[g].rm_so, group_arr[g].rm_eo,
+                        line_copy + group_arr[g].rm_so);
+
+                if (g == 1)
+                    scroll_value = strtol(line_copy + group_arr[g].rm_so, &long_ptr2, 10);
+            }
+
+            if (debug)
+                printf("scroll %d\n", scroll_value);
+
+            if (scroll_value != 0)
+            {
+                char *cmd[20];
+                sprintf(cmd, "xdotool click %d &", scroll_value == -1 ? 5 : 4);
+                system(cmd);
+            }
         }
 
     }
