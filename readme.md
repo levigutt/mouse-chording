@@ -1,23 +1,37 @@
-## why?
+## why mouse chording?
 
-my attempts at setting up mouse button chording on linux: 
+like most _superusers_ I prefer using the keyboard for everything, and a long
+time time I thought I hated the mouse. But actually, what I hated was switching
+back and forth between the mouse and the keyboard.
+
+Using mouse chording I can greatly reduce the number of times I have to switch
+back and forth, and simple tasks like copying and pasting text from one
+application into another can become a one handed operation.
+
+## why this project?
+
+I was able to set up mouse chording very easily on windows using AutoHotkey
+(see `mouse-chording.ahk`). I got hooked, and was able to bring the setup with
+me to MacOS using Hammerspoon. 
+
+Now I've moved to Linux, permanently, and have not been able to find a way to
+replicate my setup. Some of my attempts are documented here:
 https://unix.stackexchange.com/q/751786/360766
 
-it turns out that while `xbindkeys` and `xdotool` are quite capable, they simply lack the featurset needed to replicate the exact setup that I'd gotten used to on Windows and MacOS.
+it turns out that while `xbindkeys` and `xdotool` are quite capable, they
+simply lack the exact features I need.
 
-specifically, I want mouse chording using a three button mouse (not a special mouse with extra buttons), and I want to have the buttons keep their original function when used individually.
+Specifically, I want mouse chording using a three button mouse (not a special
+mouse with extra buttons), and I want to have the buttons keep their original
+function when used individually. This final point is where `xbindkeys` fails.
 
-`xbindkeys` will grab the mouse events, preventing the default actions. 
+## how this works
 
-`xdotool` cannot send a mouse event while the same event is in effect.
+it uses `evtest` to interrupts mouse events from a specified input device, and
+passes the event stream to the program which runs commands when chord combos
+are detected, or else recreates the mouse events.
 
-neither tools can limit their function to a specific input device.
-
-## how it works
-
-this uses `evtest` to interrupts mouse events from a specified input device, and passes the event stream to the program which runs commands when chord combos are detected, or else recreates the mouse events.
-
-I haven't yet figured out all I need to fully utilize the X11 API - so many of the commands are done through `xdotool`. This makes it noticeably slow and unsuitable for gaming.
+Since it has to recreate mouse movement events, it will slow down the mouse. Like using low DPI.
 
 ## how to use
 
@@ -29,13 +43,15 @@ _this requires some x11 development libraries_
 **2\.**
 run `sudo evtest` to get list of input devices
 
-in my case `/dev/input/event19` is the USB OPTICAL MOUSE, which I want to use for chording. 
+my mouse is named `USB OPTICAL MOUSE` and is listed as `/dev/input/event19`
 
 replace with appropriate input device for your setup in the `run.sh` script
 
-**\3.**
+**3\.**
 
-run `run.sh` - this will _grab_ (interrupt) input events from the selected device, padding all events to the executable - which in turn will either do the mouse chording actions, if the events correspond to any of the chording shortcuts, or pass on the events through the X11 API if not.
+run `run.sh` - this will _grab_ (interrupt) input events from the selected
+device, passing all events to the executable - which will perform chords when
+the specified combos are found, or else recreate the mouse events.
 
 ## chording shortcuts
 
@@ -50,44 +66,88 @@ Right+Middle  = Redo  (Ctrl+Y / Ctrl+Shift+z)
 
 ## chord ideas
 
-these are not yet implemented
-
 ```
 Middle + Scroll = Switch app (Alt+Tab)
 Right  + Scroll = Clipboard menu (using dmenu, paste selection on release)??
-```
-
-decided against these, since they'd mainly be useful in the browser, which has prominent back and forward buttons in the gui (and one can use Ctrl+Z in the adress bar too)
-``` 
 Middle + Left   = Back
 Middle + Right  = Forward
 ```
 
+these are not implemented
+
 ## development
 
-borrowed mouseclick routine from here:
-https://snipplr.com/view/1599/xlib--mouseclick
+The immediate problem is that it slows down the mouse.
 
-but it does not work right, I can't change active window and it wont let me resize windows
+`mouse-chording2.c` is attempting to solve this by grabbing the mouse events
+for the mouse _manually_ instead of using the `evtest` command.
 
-switched to using xdotool as a system call, for now - atleast it works :p 
+It does this by using `XGrabDeviceButton` to only grab button events from a
+specified device. However, it does not stop the normal function of the mouse
+buttons, for some reason.
 
-using X11/extensions/Xtest.h provides a function `XTestFakeButtonEvent` which is supposed to work better
-- https://bharathisubramanian.wordpress.com/2010/04/01/x11-fake-mouse-events-generation-using-xtest/
+Using `XGrabButton` does stop the normal function, but will intercept all mouse
+events - not just from the external mouse. This means that any mouse event we
+recreate will also be grabbed - causing an infinite loop. 
 
-current versions slows down the mouse, like using low dpi, but is otherwise quite usable. 
 
-we can probably avoid needing to replay mouse movements by changing from using `evtest` to simply using `XSelectInput` and `XGrabButton` as explained here: https://stackoverflow.com/a/10247776/1678383
+### other solutions
+
+**use ioctl** 
+
+use `ioctl(EVIOCGRAB)` to capture mouse events from device instead of
+`XGrabDeviceButton`
+
+downside:
+
+- more complex, and we must filter out the mouse movement manually.
+
+upside: 
+- could be made as a patch to `evtest` giving it an option to only grab
+  button-events. which would allow for this:
+  `evtest /dev/input/event3 --grab --buttons-only | ./mouse-chording.exe`
+    - `mouse-chording.exe` could then be done in any language, since we don't
+      need the speed of C for replaying mouse movements or the xlib library.
 
 ## todo 
 
 - [x] fix bug where left mouse button is not released after chord
 - [x] pass through mouse scrolling event
 - [x] fix repeating middle and right clicks
-- [ ] add scroll-chording (middle + scroll)
-- [ ] get Xtest extension and replace xdotool with `XTestFake*` functions (or `xdo` library) (should be faster)
-- [ ] use x11 api to grap events, instead of relying on `evtest` (should be faster)
-- [ ] add config file for specifying chords and commands (more customizable)
+- [ ] use x11 api to grap events, instead of relying on `evtest`
+- [ ] add config file for specifying chords?
+- [ ] add more chording combos
 - [ ] clean up code
 
 
+## research
+
+### recreating mouse events
+
+current implementation use system calls to `xdotool`
+
+tried using the mouseclick routine from here:
+[snipplr.com/view/1599/xlib--mouseclick](https://snipplr.com/view/1599/xlib--mouseclick)
+but it does not work right, I can't change active window and it wont let me
+resize windows
+
+`XTestFakeButtonEvent` from `X11/extensions/Xtest.h` seems to have the same
+problems
+
+### preventing infinite loops
+
+recreating mouse events and then capturing them will cause an infinite loop. 
+
+#### solutions
+
+**ungrab before recreating events, regrab after**
+
+- this requires a delay to let the event go through before regrabbing.
+    - regrabbing proved to cause some problems, perhaps XDisplay needs to be closed and reopened? 
+- my attempts at this approach was agonizing, will explore other options first. 
+
+**only capture from specific device**
+
+- essentially what `evtest | ./mouse-chording.exe` is doing, so we know it works
+- events that are replayed will not be captured.. problem solved.
+- `XGrabDeviceButton` seems to not want to _grab_, it only listens for events, but does not prevent them from going through.
