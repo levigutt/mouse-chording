@@ -54,7 +54,6 @@ my mouse is named `USB OPTICAL MOUSE` and is listed as `/dev/input/event19`
 replace with appropriate input device for your setup in the `run.sh` script
 
 **3\.**
-
 run `run.sh`
 
 ## chording shortcuts
