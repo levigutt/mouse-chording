@@ -1,12 +1,15 @@
 ## why mouse chording?
 
-like most _superusers_ I prefer using the keyboard for everything, and a long
-time time I thought I hated the mouse. But actually, what I hated was switching
-back and forth between the mouse and the keyboard.
+Like most _superusers_ I prefer using the keyboard for everything, and for a
+long time I thought I hated the mouse. 
+
+But after trying Acme (the plan9 editor) and its 
+[mouse chords](http://acme.cat-v.org/mouse) I realized that what I actually
+hated was switching back and forth between the mouse and the keyboard.
 
 Using mouse chording I can greatly reduce the number of times I have to switch
 back and forth, and simple tasks like copying and pasting text from one
-application into another can become a one handed operation.
+application into another can become a simple one-handed operation.
 
 ## why this project?
 
@@ -14,24 +17,27 @@ I was able to set up mouse chording very easily on windows using AutoHotkey
 (see `mouse-chording.ahk`). I got hooked, and was able to bring the setup with
 me to MacOS using Hammerspoon. 
 
-Now I've moved to Linux, permanently, and have not been able to find a way to
-replicate my setup. Some of my attempts are documented here:
-https://unix.stackexchange.com/q/751786/360766
+Then I've moved to Linux, and was not able to find a way to replicate my setup. 
+Some of my attempts are documented here: 
+[unix.stackexchange.com/q/751786/360766](https://unix.stackexchange.com/q/751786/360766)
 
 it turns out that while `xbindkeys` and `xdotool` are quite capable, they
 simply lack the exact features I need.
 
 Specifically, I want mouse chording using a three button mouse (not a special
 mouse with extra buttons), and I want to have the buttons keep their original
-function when used individually. This final point is where `xbindkeys` fails.
+function when used "normally" (individually). This final point is where 
+`xbindkeys` fails.
 
 ## how this works
 
-it uses `evtest` to interrupts mouse events from a specified input device, and
+It uses `evtest` to interrupts mouse events from a specified input device, and
 passes the event stream to the program which runs commands when chord combos
 are detected, or else recreates the mouse events.
 
-Since it has to recreate mouse movement events, it will slow down the mouse. Like using low DPI.
+Since it has to recreate mouse movement events, it will slow down the mouse. 
+Like using low DPI. It also recreates X-axis and Y-axis seperately, which 
+makes it feel weird.
 
 ## how to use
 
@@ -79,17 +85,22 @@ these are not implemented
 
 The immediate problem is that it slows down the mouse.
 
-`mouse-chording2.c` is attempting to solve this by grabbing the mouse events
-for the mouse _manually_ instead of using the `evtest` command.
+`mouse-chording2.c` is attempting to solve this by grabbing the mouse events 
+through the X11 API, instead of relying on `evtest` - the idea is to only grab
+button events, and therefore not need to recreate mouse movement.
 
-It does this by using `XGrabDeviceButton` to only grab button events from a
+It does this by using `XGrabDeviceButton()` to only grab button events from a
 specified device. However, it does not stop the normal function of the mouse
 buttons, for some reason.
 
-Using `XGrabButton` does stop the normal function, but will intercept all mouse
+Using `XGrabButton()` does stop the normal function, but will intercept all mouse
 events - not just from the external mouse. This means that any mouse event we
-recreate will also be grabbed - causing an infinite loop. 
+recreate will also be grabbed - causing infinite loops.
 
+The documentation for `XGrabDeviceButton()` is not very clear and I think I might 
+be using it wrong. Which is probably why it doesn't do what I want. It also 
+issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit for 
+`XNextEvent()`. 
 
 ### other solutions
 
