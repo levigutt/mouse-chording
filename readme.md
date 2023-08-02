@@ -129,7 +129,7 @@ upside:
 - [ ] clean up code
 
 
-## research
+## misc.
 
 ### recreating mouse events
 
