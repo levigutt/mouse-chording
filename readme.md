@@ -106,7 +106,7 @@ issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit for
 
 **use ioctl** 
 
-use `ioctl(EVIOCGRAB)` to capture mouse events from device instead of
+use `ioctl(fd,EVIOCGRAB,1)` to capture mouse events from device instead of
 `XGrabDeviceButton`
 
 downside:
