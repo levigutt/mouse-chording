@@ -94,11 +94,6 @@ Using `XGrabButton()` does stop the normal function, but will intercept all mous
 events - not just from the external mouse. This means that any mouse event we
 recreate will also be grabbed - causing infinite loops.
 
-The documentation for `XGrabDeviceButton()` is not very clear and I think I might 
-be using it wrong. Which is probably why it doesn't do what I want. It also 
-issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit for 
-`XNextEvent()`. 
-
 --- 
 
 I found this sentence in the [documentation on x.org](https://www.x.org/releases/current/doc/man/man3/XGrabDeviceButton.3.xhtml#heading3)
