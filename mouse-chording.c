@@ -242,6 +242,7 @@ int main(int argc, char * argv[])
 
     regfree(&mouse_move_regex);
     regfree(&mouse_click_regex);
+    regfree(&mouse_scroll_regex);
 
     XCloseDisplay(dpy);
 
