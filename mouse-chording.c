@@ -52,11 +52,11 @@ int main(int argc, char * argv[])
     }
 
     // read lines from STDIN
-    char *line[1024];
+    char *line = malloc(sizeof(char)*1024);
     while (read_line(line))
     {
-        char *code[6];
-        char *value[6];
+        char *code = malloc(sizeof(char)*6);
+        char *value = malloc(sizeof(char)*6);
 
         if (regexec(&mouse_move_regex, line, group_limit, group_arr, 0) == 0)
         {
@@ -106,7 +106,7 @@ int main(int argc, char * argv[])
             char line_copy[strlen(line) + 1];
             strcpy(line_copy, line);
 
-            char *button_name[6];
+            char *button_name = malloc(sizeof(char)*20);
             int button_code = 0;
             int button_action = 0;
 
@@ -171,7 +171,7 @@ int main(int argc, char * argv[])
                 if (debug)
                     printf("mouse click\n button: %d\nstate: %d\n", button_code, button_action);
 
-                char *cmd[32];
+                char *cmd = malloc(sizeof(char)*32);
                 sprintf(cmd, "");
                 if (mouse_chord_active == 0 
                  && button_code == 1 
@@ -231,7 +231,7 @@ int main(int argc, char * argv[])
 
             if (scroll_value != 0)
             {
-                char *cmd[32];
+                char *cmd = malloc(sizeof(char)*32);
                 printf("scroll %s\n", scroll_value == -1 ? "down" : "up");
                 sprintf(cmd, "xdotool click %d &", scroll_value == -1 ? 5 : 4);
                 system(cmd);

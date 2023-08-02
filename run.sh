@@ -1,2 +1,2 @@
 #!/bin/sh
-sudo evtest --grab /dev/input/event19 | ./mouse-chording.exe
+sudo evtest --grab /dev/input/event3 | ./mouse-chording.exe
