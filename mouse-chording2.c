@@ -166,14 +166,14 @@ int main(int argc, char *argv[])
         else if (button == 1 && state & RightState)
         {
             // Right + Left = Undo
-            printf("xdotool key ctrl+y\n");
+            printf("xdotool key ctrl+z\n");
             if (prevBtn != 1) prevBtn = 0;
             continue;
         }
         else if (button == 2 && state & RightState)
         {
             // Right + Middle = Redo
-            printf("xdotool key ctrl+shift+y\n");
+            printf("xdotool key ctrl+shift+z\n");
             if (prevBtn != 1) prevBtn = 0;
             continue;
         }
