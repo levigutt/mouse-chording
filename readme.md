@@ -31,9 +31,9 @@ function when used "normally" (individually). This final point is where
 
 ## how this works
 
-It uses `evtest` to interrupts mouse events from a specified input device, and
-passes the event stream to the program which runs commands when chord combos
-are detected, or else recreates the mouse events.
+It uses `evtest` to grab (interrupt) mouse events from a specified input device,
+and passes the event stream to the program which runs commands when chord 
+combos are detected, or else recreates the mouse events.
 
 Since it has to recreate mouse movement events, it will slow down the mouse. 
 Like using low DPI. It also recreates X-axis and Y-axis seperately, which 
@@ -55,19 +55,17 @@ replace with appropriate input device for your setup in the `run.sh` script
 
 **3\.**
 
-run `run.sh` - this will _grab_ (interrupt) input events from the selected
-device, passing all events to the executable - which will perform chords when
-the specified combos are found, or else recreate the mouse events.
+run `run.sh`
 
 ## chording shortcuts
 
 ```
-Left+Middle   = Cut   (Ctrl+x)
-Left+Right    = Paste (Ctrl+v)
+Left+Middle   = Cut   (Ctrl+X)
+Left+Right    = Paste (Ctrl+V)
 Middle+Left   = Return
 Middle+Right  = Space
-Right+Left    = Undo  (Ctrl+z)
-Right+Middle  = Redo  (Ctrl+Y / Ctrl+Shift+z)
+Right+Left    = Undo  (Ctrl+Z)
+Right+Middle  = Redo  (Ctrl+Shift+Z / Ctrl+Y)
 ```
 
 ## chord ideas
