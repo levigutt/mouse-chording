@@ -99,6 +99,16 @@ be using it wrong. Which is probably why it doesn't do what I want. It also
 issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit for 
 `XNextEvent()`. 
 
+--- 
+
+I found this sentence in the [documentation on x.org](https://www.x.org/releases/current/doc/man/man3/XGrabDeviceButton.3.xhtml#heading3)
+
+>The XGrabDeviceButton request establishes a passive grab. In the future, the 
+device is actively grabbed...
+
+Could this mean that `XGrabDeviceButton` lacks the feature for establishing an 
+active grab, and that this is planned for _the future_? 
+
 ### other solutions
 
 **use ioctl** 
