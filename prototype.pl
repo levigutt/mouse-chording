@@ -36,7 +36,7 @@ if ($type == 2)
     # batch movements
     $move{$code}+= $value;
 
-    # run batched movements when lagging less than 0.1
+    # run batched movements when lagging less than limit
     if ($time > (time)-$max_lag)
     {
         system "sudo evemu-event $target --type 2 --code $_ --value $move{$_} --sync&" for keys %move;
