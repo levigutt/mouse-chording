@@ -2,15 +2,17 @@
 #include <string.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <sys/time.h>
 #include <unistd.h>
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
 
-char *read_line(char *buffer);
-int run_mouse_chord(int button);
-
 bool debug = false;
 bool verbose = false;
+
+char *read_line(char *buffer);
+int run_mouse_chord(int button);
+long long current_timestamp();
 
 Display *dpy;
 Window root_win;
@@ -22,6 +24,8 @@ bool mouse_chord_active = 0;
 int LMB = 272;
 int RMB = 273;
 int MMB = 274;
+
+long mouse_x, mouse_y = 0;
 
 int main(int argc, char * argv[])
 {
@@ -39,6 +43,8 @@ int main(int argc, char * argv[])
     char *line = malloc(sizeof(char)*1024);
     while (read_line(line))
     {
+        long long now = current_timestamp();
+        double etime;
         long type;
         long code;
         long value;
@@ -53,6 +59,7 @@ int main(int argc, char * argv[])
         {
             switch (i++)
             {
+                case 2: etime  = strtod(token, &ptr); break;
                 case 4:  type  = strtol(token, &ptr, 10); break;
                 case 7:  code  = strtol(token, &ptr, 10); break;
                 case 10: value = strtol(token, &ptr, 10); break;
@@ -64,7 +71,8 @@ int main(int argc, char * argv[])
             continue;
 
         if (debug)
-            printf("type: %d, code: %d, value: %d\n", type, code, value);
+            printf("time: %.6f, type: %d, code: %d, value: %d\n",
+                    etime, type, code, value);
 
         // mouse movement and scrolling
         if (type == 2)
@@ -78,18 +86,26 @@ int main(int argc, char * argv[])
             }
             else if (code <= 1)
             {
-                long mouse_x, mouse_y = 0;
                 if (code == 1)
-                    mouse_y = value;
+                    mouse_y+= value;
                 else
-                    mouse_x = value;
+                    mouse_x+= value;
 
                 if (debug)
                     printf("%d  x  %d\n", mouse_x, mouse_y);
 
-                // move cursor
-                XWarpPointer(dpy, None, None, 0, 0, 0, 0, mouse_x, mouse_y);
-                XFlush(dpy);
+                // calculate mouse lag
+                long long diff = (now*10) - (long  long)(etime * 10000);
+
+                // move cursor unless lagging
+                if (diff <= 5)
+                {
+                    XWarpPointer(dpy, None, None, 0, 0, 0, 0, mouse_x, mouse_y);
+                    mouse_x = 0; mouse_y = 0;
+                    XFlush(dpy);
+                }
+                else if (debug)
+                    printf("lag: %d\n", diff);
             }
 
             continue;
@@ -267,4 +283,10 @@ char *read_line(char *buffer)
 }
 
 
-
+long long current_timestamp() {
+    struct timeval te;
+    gettimeofday(&te, NULL); // get current time
+    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
+    // printf("milliseconds: %lld\n", milliseconds);
+    return milliseconds;
+}
