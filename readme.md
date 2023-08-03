@@ -56,6 +56,16 @@ replace with appropriate input device for your setup in the `run.sh` script
 **3\.**
 run `run.sh`
 
+**alternatively**
+
+the perl version runs at decent speeds after some recent optimizations, and doesn't require compilation x11 development libraries
+
+```bash
+sudo evtest --grab /dev/input/event19 | ./mouse-chording.pl
+```
+
+this version is also easier to customize.
+
 ## chording shortcuts
 
 ```
@@ -80,24 +90,25 @@ these are not implemented
 
 ## development
 
-The immediate problem is that it slows down the mouse.
+The immediate problem is that it slows down the mouse, and blocks mouse
+acceleration and other enhancements from the Desktop Environment. 
 
-`mouse-chording2.c` is attempting to solve this by grabbing the mouse events 
-through the X11 API, instead of relying on `evtest` - the idea is to only grab
-button events, and therefore not need to recreate mouse movement.
+the `grabdevice` branch is attempting to solve this by grabbing the mouse
+events through the X11 API, instead of relying on `evtest` - the idea is to
+only grab button events, and therefore not need to recreate mouse movement.
 
 It does this by using `XGrabDeviceButton()` to only grab button events from a
 specified device. However, it does not stop the normal function of the mouse
 buttons, for some reason.
 
-Using `XGrabButton()` does stop the normal function, but will intercept all mouse
-events - not just from the external mouse. This means that any mouse event we
-recreate will also be grabbed - causing infinite loops.
+Using `XGrabButton()` does stop the normal function, but will intercept all
+mouse events - not just from the external mouse. This means that any mouse
+event we recreate will also be grabbed - causing infinite loops.
 
-The documentation for `XGrabDeviceButton()` is not very clear and I think I might 
-be using it wrong. Which is probably why it doesn't do what I want. It also 
-issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit for 
-`XNextEvent()`. 
+The documentation for `XGrabDeviceButton()` is not very clear and I think I
+might be using it wrong. Which is probably why it doesn't do what I want. It
+also issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit
+for `XNextEvent()`. 
 
 ### other solutions
 
@@ -123,7 +134,6 @@ upside:
 - [x] pass through mouse scrolling event
 - [x] fix repeating middle and right clicks
 - [ ] use x11 api to grap events, instead of relying on `evtest`
-- [ ] add config file for specifying chords?
 - [ ] add more chording combos
 - [ ] clean up code
 
@@ -159,3 +169,24 @@ recreating mouse events and then capturing them will cause an infinite loop.
 - essentially what `evtest | ./mouse-chording.exe` is doing, so we know it works
 - events that are replayed will not be captured.. problem solved.
 - `XGrabDeviceButton` seems to not want to _grab_, it only listens for events, but does not prevent them from going through.
+
+**xdotool vs evemu-event**
+
+a quick benchmark shows that `xdotool` is significantly faster than
+evemu-event:
+
+```bash
+$ perl -Mojo -e 'n { system "xdotool mousemove_relative 10 10&"; } 1000' 
+5.616 wallclock secs ( 0.04 usr  0.96 sys +  1.63 cusr  2.97 csys =  5.60 CPU) @ 178.57/s (n=1000)
+
+$ perl -Mojo -e 'n { system "sudo evemu-event /dev/input/event1 --type 2 --code 1 --value 10&" } 1000'
+9.8866 wallclock secs ( 0.05 usr  1.68 sys +  1.66 cusr  4.42 csys =  7.81 CPU) @ 128.04/s (n=1000)
+```
+
+`evemu-event` takes twice as long and only does one axis at a time.
+
+by switching to `xdotool` and batching the movments when it starts to lag, the
+perl version too can run at decent speeds.
+
+I can hardly notice any difference now between the C version and the perl
+version - which goes to show that the bottleneck is probably `evtest`
