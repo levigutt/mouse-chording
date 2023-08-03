@@ -31,7 +31,7 @@ if ($code == 8)      # LoRes scroll
     next;
 }
 
-if ($type == 2 && $code != 8)
+if ($type == 2)
 {
     # batch movements
     $move{$code}+= $value;
@@ -77,7 +77,7 @@ next unless $value; # all chords happen on press (not release)
 
 # Chording syntax
 #    click on Right      while Left is down
-#   ( $code == 274   &&  $btns{272}        )
+#   ( $code == 273   &&  $btns{272}        )
 
 # Left + Middle = Snarf
 if ($code == 274 && $btns{272})
