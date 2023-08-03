@@ -2,13 +2,13 @@
 # sudo evtest /dev/input/event19 | ./prototype.pl
 use Time::HiRes qw<time>;
 
+our $count;
 BEGIN
 {
-    our $max_lag = 0.05; # increase for precision, decrease for speed
-    our $target  = '/dev/input/event1'; # trackpad
-
+    our $max_lag = 0.02; # increase for precision, decrease for speed
     our %btns = (272 => 0, 273 => 0, 274 => 0);
-    our %move;
+    our $mouse_x = 0;
+    our $mouse_y = 0;
     our $active_chord = 0;
 }
 
@@ -34,13 +34,14 @@ if ($code == 8)      # LoRes scroll
 if ($type == 2)
 {
     # batch movements
-    $move{$code}+= $value;
+    $mouse_x += $value if $code == 0;
+    $mouse_y += $value if $code == 1;
 
     # run batched movements when lagging less than limit
     if ($time > (time)-$max_lag)
     {
-        system "sudo evemu-event $target --type 2 --code $_ --value $move{$_} --sync&" for keys %move;
-        %move = ();
+        system "xdotool mousemove_relative -- $mouse_x $mouse_y&";
+        $mouse_x = $mouse_y = 0;
     }
     next;
 }
@@ -61,13 +62,13 @@ if ( ($code == 272 && !($btns{273} || $btns{274}))
     if ($code == 272)
     {
         # left button can be held for selecting text
-        system "sudo evemu-event $target --type 1 --code $code --value $value --sync&";
+        system $value ? "xdotool mousedown 1&" : "xdotool mouseup 1&";
+        #system "sudo evemu-event $target --type 1 --code $code --value $value --sync&";
     }
     elsif($value == 0 && not $active_chord)
     {
         # middle and right will only trigger click - cannot be held
-        system "sudo evemu-event $target --type 1 --code $code --value 1 --sync&";
-        system "sudo evemu-event $target --type 1 --code $code --value 0 --sync&";
+        system "xdotool click " . ($code == 274 ? 2 : 3) . "&";
     }
     $active_chord = 0;
     next;
@@ -115,7 +116,5 @@ if ($code == 274 && $btns{273})
 END
 {
     # release buttons to prevent getting stuck
-    system "sudo evemu-event $target --type 1 --code 272 --value 0 --sync&";
-    system "sudo evemu-event $target --type 1 --code 273 --value 0 --sync&";
-    system "sudo evemu-event $target --type 1 --code 274 --value 0 --sync&";
+    system "xdotool mouseup $_&" for (1..3);
 }
