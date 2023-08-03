@@ -286,7 +286,7 @@ int run_mouse_chord(int button)
         else if (button == 3)
         {
             if (debug || verbose)
-                printf("Left + Right = Snarf\n");
+                printf("Left + Right = Paste\n");
             system("xdotool key ctrl+v");
         }
         mouse_chord_active = 1;
