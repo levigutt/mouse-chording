@@ -40,7 +40,8 @@ int main(int argc, char * argv[])
     screen = DefaultScreenOfDisplay(dpy);
 
     // read lines from STDIN
-    char *line = malloc(sizeof(char)*1024);
+    char line[1024];
+    char cmd[32];
     while (read_line(line))
     {
         long long now = current_timestamp();
@@ -157,7 +158,7 @@ int main(int argc, char * argv[])
                 if (debug)
                     printf("mouse click\n button: %d\nstate: %d\n", button_code, value);
 
-                char *cmd = malloc(sizeof(char)*32);
+                cmd[0] = '\0';
                 sprintf(cmd, "");
                 if (mouse_chord_active == 0 
                  && button_code == 1 
@@ -175,7 +176,7 @@ int main(int argc, char * argv[])
                 {
                     sprintf(cmd, "xdotool click %d\n", button_code);
                 }
-                if (strlen(cmd) > 0)
+                if (cmd[0])
                     system(cmd);
             }
 
