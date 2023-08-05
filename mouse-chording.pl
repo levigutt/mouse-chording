@@ -10,6 +10,12 @@ BEGIN
     our $mouse_y      = 0;
     our $active_chord = 0;
     our $alt_down     = 0;
+
+    # mouse button codes
+    our $left_code   = 272;
+    our $right_code  = 273;
+    our $middle_code = 274;
+    our $scroll_code = 8;
 }
 
 # only handle events
@@ -46,17 +52,12 @@ if ($type == 2 && !($code == 8 || $code == 11))
 # keep track of pressed buttons
 $btns{$code} = $value;
 
-# mouse button codes
-# 272 = Left
-# 273 = Right
-# 274 = Middle
-
 # emulate button presses
-if ( ($code == 272 && !($btns{273} || $btns{274}))
-  || ($code == 273 && !($btns{272} || $btns{274}))
-  || ($code == 274 && !($btns{272} || $btns{273})) )
+if ( ($code == $left_code   && !($btns{$right_code} || $btns{$middle_code}))
+  || ($code == $right_code  && !($btns{$left_code}  || $btns{$middle_code}))
+  || ($code == $middle_code && !($btns{$left_code}  || $btns{$right_code})) )
 {
-    if ($code == 272)
+    if ($code == $left_code)
     {
         # left button can be held for selecting text
         system $value ? "xdotool mousedown 1&" : "xdotool mouseup 1&";
@@ -64,18 +65,17 @@ if ( ($code == 272 && !($btns{273} || $btns{274}))
     elsif($value == 0 && not $active_chord)
     {
         # middle and right will only trigger click - cannot be held
-        system "xdotool click " . ($code == 274 ? 2 : 3) . "&";
+        system "xdotool click " . ($code == $middle_code ? 2 : 3) . "&";
     }
 
     # release alt to select from window-switcher
     system "xdotool keyup alt&";
     $alt_down = 0;
-
     $active_chord = 0;
     next;
 }
 # emulate scroll wheel
-elsif ($code == 8 && !$btns{274})
+elsif ($code == 8 && !$btns{$middle_code})
 {
     system( sprintf("xdotool click %d&", $value > 0 ? 4 : 5) );
 }
@@ -83,13 +83,8 @@ elsif ($code == 8 && !$btns{274})
 # only do chords when button is pressed (not released)
 next unless $value;
 
-
-# Chording syntax
-#    click on Right      while Left is down
-#   ( $code == 273   &&  $btns{272}        )
-
 # Left + Middle = Snarf
-if ($code == 274 && $btns{272})
+if ($btns{$left_code} && $code == $middle_code)
 {
     system "xdotool mouseup 1&"; # prevent accidental selection after snarf
     system "xdotool key ctrl+c key ctrl+x&";
@@ -98,7 +93,7 @@ if ($code == 274 && $btns{272})
 }
 
 # Left + Right = Paste
-if ($code == 273 && $btns{272})
+if ($btns{$left_code} && $code == $right_code)
 {
     system "xdotool key ctrl+v&";
     $active_chord = 1;
@@ -106,25 +101,23 @@ if ($code == 273 && $btns{272})
 }
 
 # Middle + Left = Return
-if ($code == 272 && $btns{274})
+if ($btns{$middle_code} && $code == $left_code)
 {
     system "xdotool key Return&";
-    #system "xdotool key ctrl+shift+Left&";
     $active_chord = 1;
     next;
 }
 
 # Middle + Right = Return
-if ($code == 273 && $btns{274})
+if ($btns{$middle_code} && $code == $right_code)
 {
     system "xdotool key space&";
-    #system "xdotool key ctrl+shift+Right&";
     $active_chord = 1;
     next;
 }
 
 # Right + Left = Undo
-if ($code == 272 && $btns{273})
+if ($btns{$right_code} && $code == $left_code)
 {
     system "xdotool key ctrl+z&";
     $active_chord = 1;
@@ -132,7 +125,7 @@ if ($code == 272 && $btns{273})
 }
 
 # Right + Middle = Redo
-if ($code == 274 && $btns{273})
+if ($btns{$right_code} && $code == $middle_code)
 {
     system "xdotool key ctrl+shift+z&";
     $active_chord = 1;
@@ -140,7 +133,7 @@ if ($code == 274 && $btns{273})
 }
 
 # Middle + Scroll
-if ($code == 8 && $btns{274})
+if ($btns{$middle_code} && $code == 8)
 {
     system "xdotool keydown alt&" unless $alt_down;
     $alt_down = 1;

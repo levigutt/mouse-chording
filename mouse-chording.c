@@ -7,25 +7,22 @@
 #include <X11/Xutil.h>
 #include <X11/Xlib.h>
 
-bool debug = false;
-bool verbose = false;
-
 char *read_line(char *buffer);
-int run_mouse_chord(int button);
-long long current_timestamp();
 
 Display *dpy;
 Window root_win;
 Screen *screen;
 
-int mouse_button_state = 0;
-bool mouse_chord_active = 0;
-
-int LMB = 272;
-int RMB = 273;
-int MMB = 274;
-
+int buttons_state     = 0;
+bool active_chord     = 0;
 long mouse_x, mouse_y = 0;
+
+int left_button     = 272;
+int right_button    = 273;
+int middle_button   = 274;
+int scroll_wheel    = 8;
+int button_mask[4]  = {0, Button1Mask, Button2Mask, Button3Mask};
+
 
 int main(int argc, char * argv[])
 {
@@ -44,220 +41,129 @@ int main(int argc, char * argv[])
     char cmd[32];
     while (read_line(line))
     {
-        long long now = current_timestamp();
-        double etime;
         long type;
         long code;
         long value;
-        char *ptr;
 
         // split line by spaces to pull out values
         int i = 0;
-        char s[2] = " ";
+        char *ptr;
         char *token;
+        char s[2] = " ";
         token = strtok(line, s);
         while (token != NULL)
         {
             switch (i++)
             {
-                case 2: etime  = strtod(token, &ptr); break;
-                case 4:  type  = strtol(token, &ptr, 10); break;
-                case 7:  code  = strtol(token, &ptr, 10); break;
-                case 10: value = strtol(token, &ptr, 10); break;
+                case 4  : type  = strtol(token, &ptr, 10); break;
+                case 7  : code  = strtol(token, &ptr, 10); break;
+                case 10 : value = strtol(token, &ptr, 10); break;
             }
             token = strtok(NULL, s);
         }
 
-        if (!type)
-            continue;
+        // ignore unused events
+        if (!type || code == 11) continue;
 
-        if (debug)
-            printf("time: %.6f, type: %d, code: %d, value: %d\n",
-                    etime, type, code, value);
-
-        // mouse movement and scrolling
-        if (type == 2)
+        // emulate mouse movement
+        if (type == 2 && code <= 1)
         {
-            if (code == 8)
-            {
-                if (value > 0)
-                    system("xdotool click 4&");
-                else
-                    system("xdotool click 5&");
-            }
-            else if (code <= 1)
-            {
-                if (code == 1)
-                    mouse_y+= value;
-                else
-                    mouse_x+= value;
+            mouse_x = 0;
+            mouse_y = 0;
+            if (code == 1)
+                mouse_y = value;
+            else
+                mouse_x = value;
 
-                if (debug)
-                    printf("%d  x  %d\n", mouse_x, mouse_y);
-
-                // calculate mouse lag
-                long long diff = (now*10) - (long  long)(etime * 10000);
-
-                // move cursor unless lagging
-                if (diff <= 5)
-                {
-                    XWarpPointer(dpy, None, None, 0, 0, 0, 0, mouse_x, mouse_y);
-                    mouse_x = 0; mouse_y = 0;
-                    XFlush(dpy);
-                }
-                else if (debug)
-                    printf("lag: %d\n", diff);
-            }
-
+            XWarpPointer(dpy, None, None, 0, 0, 0, 0, mouse_x, mouse_y);
+            XFlush(dpy);
             continue;
         }
 
         // detect mouse clicks
-        if (type == 1)
+        int current_btn = code == left_button   ? 1
+                        : code == middle_button ? 2
+                        : code == right_button  ? 3 : 0;
+
+        // keep track of button presses
+        if (value)
+            buttons_state |= button_mask[current_btn];
+        else
+            buttons_state &= ~button_mask[current_btn];
+
+        // simulate mouse clicks that happened in isolation
+        if (!(buttons_state & ~button_mask[current_btn]))
         {
-            int button_code = 0;
+            cmd[0] = '\0';
+            if (code == left_button)
+                sprintf(cmd, "xdotool %s %d&",
+                             value ? "mousedown" : "mouseup",
+                             current_btn);
+            else if (code == scroll_wheel)
+                sprintf(cmd, "xdotool click %d&", value > 0 ? 4 : 5);
+            else if (!value && active_chord == 0)
+                sprintf(cmd, "xdotool click %d&", current_btn);
 
-            if (code == LMB)
-            {
-                button_code = Button1;
-                if (value)
-                    mouse_button_state |= Button1Mask;
-                else
-                    mouse_button_state &= ~Button1Mask;
-            }
-            if (code == RMB)
-            {
-                button_code = Button3;
-                if (value)
-                    mouse_button_state |= Button3Mask;
-                else
-                    mouse_button_state &= ~Button3Mask;
-            }
-            if (code == MMB)
-            {
-                button_code = Button2;
-                if (value)
-                    mouse_button_state |= Button2Mask;
-                else
-                    mouse_button_state &= ~Button2Mask;
-            }
+            if (cmd[0]) system(cmd);
 
-            if (debug || verbose)
-                printf("mouse_button_state: %011b\n", mouse_button_state);
+            // reset chording
+            active_chord = 0;
+            continue;
+        }
 
-            if (debug)
-                printf("mouse_chord_active: %d\n", mouse_chord_active);
+        // only run chords on button presses (not releases)
+        if( !value ) continue;
 
-            // check for chording combos and run commands
-            if (value)
-                run_mouse_chord(button_code);
+        // chording syntax (example Left + Right)
+        //          when Left is down       and   we click Right
+        // if ((buttons_state & Button1Mask) && code == right_button)
 
-            // trigger default mouse events
-            if (button_code > 0)
-            {
-                if (debug)
-                    printf("mouse click\n button: %d\nstate: %d\n", button_code, value);
+        //Left + Middle = Snarf
+        if ((buttons_state & Button1Mask) && code == middle_button)
+        {
+            system("xdotool key ctrl+c key ctrl+x&\n");
+            active_chord = 1;
+        }
 
-                cmd[0] = '\0';
-                sprintf(cmd, "");
-                if (mouse_chord_active == 0 
-                 && button_code == 1 
-                 && value)
-                {
-                    sprintf(cmd, "xdotool mousedown %d\n", button_code);
-                }
-                else if (button_code == 1)
-                {
-                    sprintf(cmd, "xdotool mouseup %d\n", button_code);
-                }
-                else if (mouse_chord_active == 0
-                 && mouse_button_state == 0
-                 && !value)
-                {
-                    sprintf(cmd, "xdotool click %d\n", button_code);
-                }
-                if (cmd[0])
-                    system(cmd);
-            }
+        //Left + Right = Paste
+        if ((buttons_state & Button1Mask) && code == right_button)
+        {
+            system("xdotool key ctrl+v&\n");
+            active_chord = 1;
+        }
 
-            // reset when all buttons are released
-            if (mouse_chord_active && mouse_button_state == 0)
-                mouse_chord_active = 0;
+        //Middle + Left = Return
+        if ((buttons_state & Button2Mask) && code == left_button)
+        {
+            system("xdotool key Return&\n");
+            active_chord = 1;
+        }
 
+        //Middle + Right = Space
+        if ((buttons_state & Button2Mask) && code == right_button)
+        {
+            system("xdotool key space&\n");
+            active_chord = 1;
+        }
+
+        //Right + Left = Undo
+        if ((buttons_state & Button3Mask) && code == left_button)
+        {
+            system("xdotool key ctrl+z&\n");
+            active_chord = 1;
+        }
+
+        //Right + Middle = Redo
+        if ((buttons_state & Button3Mask) && code == middle_button)
+        {
+            system("xdotool key ctrl+shift+z&\n");
+            active_chord = 1;
         }
     }
 
     XCloseDisplay(dpy);
-
     return 0;
 }
-
-
-// where the magic happens
-int run_mouse_chord(int button)
-{
-    if (mouse_button_state == (Button1Mask | Button2Mask))
-    {
-        if (debug)
-            printf("matched state: %011b\n", Button1Mask | Button2Mask );
-        if (button == 1)
-        {
-            if (debug || verbose)
-                printf("Middle + Left = Return\n");
-            system("xdotool key Return");
-        }
-        else if (button == 2)
-        {
-            if (debug || verbose)
-                printf("Left + Middle = Snarf\n");
-            system("xdotool key ctrl+c key ctrl+x");
-        }
-        mouse_chord_active = 1;
-        return 1;
-    }
-
-    if (mouse_button_state == (Button1Mask | Button3Mask))
-    {
-        if (debug)
-            printf("matched state: %011b\n", Button1Mask | Button3Mask );
-        if (button == 1)
-        {
-            if (debug || verbose)
-                printf("Right + Left = Undo\n");
-            system("xdotool key ctrl+z");
-        }
-        else if (button == 3)
-        {
-            if (debug || verbose)
-                printf("Left + Right = Paste\n");
-            system("xdotool key ctrl+v");
-        }
-        mouse_chord_active = 1;
-        return 1;
-    }
-
-    if (mouse_button_state == (Button2Mask | Button3Mask))
-    {
-        if (debug)
-            printf("matched state: %011b\n", Button2Mask | Button3Mask );
-        if (button == 3)
-        {
-            if (debug || verbose)
-                printf("Middle + Right = Space\n");
-            system("xdotool key space");
-        }
-        else if (button == 2)
-        {
-            if (debug || verbose)
-                printf("Right + Middle = Redo\n");
-            system("xdotool key ctrl+shift+z");
-        }
-        mouse_chord_active = 1;
-        return 1;
-    }
-    return 0;
-}
-
 
 
 char *read_line(char *buffer)
@@ -281,13 +187,4 @@ char *read_line(char *buffer)
         buffer[len - 1] = 0;
 
     return buffer;
-}
-
-
-long long current_timestamp() {
-    struct timeval te;
-    gettimeofday(&te, NULL); // get current time
-    long long milliseconds = te.tv_sec*1000LL + te.tv_usec/1000; // calculate milliseconds
-    // printf("milliseconds: %lld\n", milliseconds);
-    return milliseconds;
 }
