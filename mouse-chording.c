@@ -15,6 +15,7 @@ Screen *screen;
 
 int buttons_state     = 0;
 bool active_chord     = 0;
+bool alt_down         = 0;
 long mouse_x, mouse_y = 0;
 
 int left_button     = 272;
@@ -107,6 +108,8 @@ int main(int argc, char * argv[])
             if (cmd[0]) system(cmd);
 
             // reset chording
+            system("xdotool keyup alt&");
+            alt_down     = 0;
             active_chord = 0;
             continue;
         }
@@ -157,6 +160,19 @@ int main(int argc, char * argv[])
         if ((buttons_state & Button3Mask) && code == middle_button)
         {
             system("xdotool key ctrl+shift+z&\n");
+            active_chord = 1;
+        }
+
+        //Middle + Scroll = window switcher
+        if ((buttons_state & Button2Mask) && code == scroll_wheel)
+        {
+            if (!alt_down)
+                system("xdotool keydown alt&\n");
+            alt_down = 1;
+            if (value > 0)
+                system("xdotool key shift+Tab&\n");
+            else
+                system("xdotool key Tab&\n");
             active_chord = 1;
         }
     }
