@@ -124,6 +124,7 @@ int main(int argc, char * argv[])
         //Left + Middle = Snarf
         if ((buttons_state & Button1Mask) && code == middle_button)
         {
+            system("xdotool mouseup 1&\n");
             system("xdotool key ctrl+c key ctrl+x&\n");
             active_chord = 1;
         }
