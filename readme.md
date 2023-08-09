@@ -119,7 +119,5 @@ Here are some other similar options:
 ## todo
 
 - [x] move each platform version to separate directory
-- [ ] refactor mac version to follow similar logic as the others, and remve
-  hyper-key setup
-    - set up new binding to toggle chording
+- [ ] refactor mac version to follow similar logic as the others, and remove hyper-key setup
 - [ ] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
