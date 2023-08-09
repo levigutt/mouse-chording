@@ -1,192 +1,126 @@
-## why mouse chording?
+# Mouse chording
 
-Like most _superusers_ I prefer using the keyboard for everything, and for a
-long time I thought I hated the mouse. 
+The basic idea is that you hold down a mouse button and then trigger some
+custom action by clicking another mouse button. Clicking the mouse buttons
+individually still works as normally.
 
-But after trying Acme (the plan9 editor) and its 
-[mouse chords](http://acme.cat-v.org/mouse) I realized that what I actually
-hated was switching back and forth between the mouse and the keyboard.
+I first became aware of this when I tried Acme (the plan9 editor), with its
+[mouse chords](http://acme.cat-v.org/mouse). Using Acme as my editor did not
+work out for me, but I could not get the mouse chords out of my head, I wanted
+to have such chords system wide.
 
-Using mouse chording I can greatly reduce the number of times I have to switch
-back and forth, and simple tasks like copying and pasting text from one
-application into another can become a simple one-handed operation.
+## Chords
 
-## why this project?
+``` Left + Middle   = Cut Left + Right    = Paste Right + Left    = Undo Right
++ Middle  = Redo Middle + Left   = Return Middle + Right  = Space Middle +
+Scroll = Switch app (Alt+Tab) ```
 
-I was able to set up mouse chording very easily on windows using AutoHotkey
-(see `mouse-chording.ahk`). I got hooked, and was able to bring the setup with
-me to MacOS using Hammerspoon. 
+## Getting started
 
-Then I've moved to Linux, and was not able to find a way to replicate my setup. 
-Some of my attempts are documented here: 
-[unix.stackexchange.com/q/751786/360766](https://unix.stackexchange.com/q/751786/360766)
+### Windows
 
-it turns out that while `xbindkeys` and `xdotool` are quite capable, they
-simply lack the exact features I need.
+1. Install [AutoHotkey](https://www.autohotkey.com/).
 
-Specifically, I want mouse chording using a three button mouse (not a special
-mouse with extra buttons), and I want to have the buttons keep their original
-function when used "normally" (individually). This final point is where 
-`xbindkeys` fails.
+2. Edit `windows/mouse-chording.ahk` to suit your needs
 
-## how this works
-
-It uses `evtest` to grab (interrupt) mouse events from a specified input device,
-and passes the event stream to the program which runs commands when chord 
-combos are detected, or else recreates the mouse events.
-
-Since it has to recreate mouse movement events, it will slow down the mouse. 
-Like using low DPI. It also recreates X-axis and Y-axis seperately, which 
-makes it feel weird.
-
-## how to use
-
-**1\.**
-compile with `./compile.sh` 
-
-_this requires some x11 development libraries_
-
-**2\.**
-run `sudo evtest` to get list of input devices
-
-my mouse is named `USB OPTICAL MOUSE` and is listed as `/dev/input/event19`
-
-replace with appropriate input device for your setup in the `run.sh` script
-
-**3\.**
-run `run.sh`
-
-**alternatively**
-
-the perl version runs at decent speeds after some recent optimizations, and doesn't require compilation x11 development libraries
-
-```bash
-sudo evtest --grab /dev/input/event19 | ./mouse-chording.pl
-```
-
-this version is also easier to customize.
-
-## chording shortcuts
-
-```
-Left+Middle   = Cut   (Ctrl+X)
-Left+Right    = Paste (Ctrl+V)
-Middle+Left   = Return
-Middle+Right  = Space
-Right+Left    = Undo  (Ctrl+Z)
-Right+Middle  = Redo  (Ctrl+Shift+Z / Ctrl+Y)
-```
-
-## chord ideas
-
-```
-Middle + Scroll = Switch app (Alt+Tab)
-Right  + Scroll = Clipboard menu (using dmenu, paste selection on release)??
-Middle + Left   = Back
-Middle + Right  = Forward
-```
-
-these are not implemented
-
-## development
-
-The immediate problem is that it slows down the mouse, and blocks mouse
-acceleration and other enhancements from the Desktop Environment. 
-
-the `grabdevice` branch is attempting to solve this by grabbing the mouse
-events through the X11 API, instead of relying on `evtest` - the idea is to
-only grab button events, and therefore not need to recreate mouse movement.
-
-It does this by using `XGrabDeviceButton()` to only grab button events from a
-specified device. However, it does not stop the normal function of the mouse
-buttons, for some reason.
-
-Using `XGrabButton()` does stop the normal function, but will intercept all
-mouse events - not just from the external mouse. This means that any mouse
-event we recreate will also be grabbed - causing infinite loops.
-
-The documentation for `XGrabDeviceButton()` is not very clear and I think I
-might be using it wrong. Which is probably why it doesn't do what I want. It
-also issues `XDeviceButtonEvent` instead of `XEvent` which makes it a poor fit
-for `XNextEvent()`. 
-
-### other solutions
-
-**use ioctl** 
-
-use `ioctl(fd,EVIOCGRAB,1)` to capture mouse events from device instead of
-`XGrabDeviceButton`
-
-downside:
-
-- more complex, and we must filter out the mouse movement manually.
-
-upside: 
-- could be made as a patch to `evtest` giving it an option to only grab
-  button-events. which would allow for this:
-  `evtest /dev/input/event3 --grab --buttons-only | ./mouse-chording.exe`
-    - `mouse-chording.exe` could then be done in any language, since we don't
-      need the speed of C for replaying mouse movements or the xlib library.
-
-## todo 
-
-- [x] fix bug where left mouse button is not released after chord
-- [x] pass through mouse scrolling event
-- [x] fix repeating middle and right clicks
-- [ ] use x11 api to grap events, instead of relying on `evtest`
-- [ ] add more chording combos
-- [ ] clean up code
+3. Run `windows/mouse-chording.ahk` as administrator.
 
 
-## misc.
+### MacOS
 
-### recreating mouse events
+1. Install [Hammerspoon](https://www.hammerspoon.org/)
 
-current implementation use system calls to `xdotool`
+2. Copy `macos/init.lua` to `~/.hammerspoon/init.lua`
 
-tried using the mouseclick routine from here:
-[snipplr.com/view/1599/xlib--mouseclick](https://snipplr.com/view/1599/xlib--mouseclick)
-but it does not work right, I can't change active window and it wont let me
-resize windows
+3. Run Hammerspoon
 
-`XTestFakeButtonEvent` from `X11/extensions/Xtest.h` seems to have the same
-problems
 
-### preventing infinite loops
+### Linux (X11)
 
-recreating mouse events and then capturing them will cause an infinite loop. 
+1. install `evtest`
 
-#### solutions
+2. run `evtest` and make note of your usb mouse, something like
+   `/dev/input/event3`
 
-**ungrab before recreating events, regrab after**
+3. make sure `mouse-chording.pl` is executable with `chmod +x mouse-choring.pl`
 
-- this requires a delay to let the event go through before regrabbing.
-    - regrabbing proved to cause some problems, perhaps XDisplay needs to be closed and reopened? 
-- my attempts at this approach was agonizing, will explore other options first. 
+4. run `evtest --grav /dev/input/event3 | ./mouse-chording.pl`
 
-**only capture from specific device**
 
-- essentially what `evtest | ./mouse-chording.exe` is doing, so we know it works
-- events that are replayed will not be captured.. problem solved.
-- `XGrabDeviceButton` seems to not want to _grab_, it only listens for events, but does not prevent them from going through.
+If the mouse movements are noticibly slow, the C version might be a better
+option: 
 
-**xdotool vs evemu-event**
+1. install the X11 development library
 
-a quick benchmark shows that `xdotool` is significantly faster than
-evemu-event:
+2. compile with `./compile.sh`
 
-```bash
-$ perl -Mojo -e 'n { system "xdotool mousemove_relative 10 10&"; } 1000' 
-5.616 wallclock secs ( 0.04 usr  0.96 sys +  1.63 cusr  2.97 csys =  5.60 CPU) @ 178.57/s (n=1000)
+3. run with `run.sh`
 
-$ perl -Mojo -e 'n { system "sudo evemu-event /dev/input/event1 --type 2 --code 1 --value 10&" } 1000'
-9.8866 wallclock secs ( 0.05 usr  1.68 sys +  1.66 cusr  4.42 csys =  7.81 CPU) @ 128.04/s (n=1000)
-```
 
-`evemu-event` takes twice as long and only does one axis at a time.
+## known issues
 
-by switching to `xdotool` and batching the movments when it starts to lag, the
-perl version too can run at decent speeds.
 
-I can hardly notice any difference now between the C version and the perl
-version - which goes to show that the bottleneck is probably `evtest`
+To preserve the normal function of the mouse buttons - when pressed
+individually - the code has to issue click commands when a mouse button is
+released (if no chord was executed). This causes things like the context menu
+from appearing on release rather than on press.
+
+Applications that allow you to select text using middle or right mouse buttons
+will not work for the same reason. There is no "hold and drag" using any other
+mouse button than the left button.
+
+### MacOS issues
+
+Mouse events are issues very differently for the touchpad and a usb mouse.
+using the touchpad and usb mouse interchangably can therefore cause the
+application to enter an undefiend state and become unresponsive. 
+
+This can be fixed easily by disabling the mouse chords when not using a usb
+mouse.
+
+Since Mac has a different Window Switcher, which switches between applications
+and windows separately (Alt+Tab = Switch app, Alt+NonUSBackslash = Switch
+window for current app) - this version has a separate set up for window
+switching on `Right + Scroll`
+
+### Linux issues
+
+This works by interrupting all events for the mouse, including movements. The
+movements therefore must be reissued, which causes mouse accelleration and
+other mouse settings in your desktop environment not to work.
+
+This may also cause the mouse movements to feel slow, especially on computers
+with limited resources. to overcome this, I've made a version in C, which runs
+faster, but you'll have to compile it yourself.
+
+### Windows issues
+
+Chords involving modifier keys does not work in some windows applications,
+typically older style applications. The cause is unknown, but it does not seem
+to be a problem in more modern applications. One example of this is Putty.
+
+Running without admin rights will cause it not to work when interacting with an
+application that does run with admin rights.
+
+## what computer mouse to use?
+
+I've found that this works best with a three button mouse where the middle
+button is a proper button and not hidden under the scroll wheel.
+
+This is not easy to come by, but you can probably find one using the phrase
+"CAD mouse".
+
+This is the mouse I use: https://amzn.asia/d/gwQMNqZ
+
+Here are some other similar options:
+- https://a.co/d/eoXpdmS
+- https://a.co/d/1f33M6c
+- https://amzn.asia/d/0yckABy
+
+## todo
+
+- [ ] move linux verson to subdirectory too
+- [ ] refactor mac version to follow similar logic as the others, and remve
+  hyper-key setup
+    - set up new binding to toggle chording
+- [ ] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
