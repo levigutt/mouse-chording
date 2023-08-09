@@ -53,11 +53,14 @@ option:
 2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
 3. install the X11 development library for your distribution
 4. install `gcc` or another C compiler
-5. compile with this command `gcc mouse-chording.c -o mouse-chording.exe -lX11` 
+5. compile with this command `gcc mouse-chording.c -o mouse-chording.exe -lX11`
 6. run `evtest --grab /dev/input/event3 | ./mouse-chording.exe`
 
-
 ## known issues
+
+To get a reliable Cut, `Left+Middle` is implemented as `Ctrl+C Ctrl+X`. This is
+because when doing `Ctrl+X` on text that cannot be cut, like the text on a
+website, the text will not be copied.
 
 To preserve the normal function of the mouse buttons - when pressed
 individually - the code has to issue click commands when a mouse button is
@@ -122,4 +125,6 @@ Here are some other similar options:
 - [ ] refactor mac version to follow similar logic as the others, and remve
   hyper-key setup
     - set up new binding to toggle chording
+- [ ] add options for overriding chords for specific applications (like
+  terminal, where `Ctrl+C` should be `Ctrl+Shif+C`)
 - [ ] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
