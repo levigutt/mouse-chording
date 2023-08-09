@@ -11,9 +11,15 @@ to have such chords system wide.
 
 ## Chords
 
-``` Left + Middle   = Cut Left + Right    = Paste Right + Left    = Undo Right
-+ Middle  = Redo Middle + Left   = Return Middle + Right  = Space Middle +
-Scroll = Switch app (Alt+Tab) ```
+```
+Left + Middle   = Cut
+Left + Right    = Paste
+Right + Left    = Undo
+Right + Middle  = Redo
+Middle + Left   = Return
+Middle + Right  = Space
+Middle + Scroll = Window switcher
+```
 
 ## Getting started
 
