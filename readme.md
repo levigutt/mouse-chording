@@ -118,7 +118,7 @@ Here are some other similar options:
 
 ## todo
 
-- [ ] move linux verson to subdirectory too
+- [x] move each platform version to separate directory
 - [ ] refactor mac version to follow similar logic as the others, and remve
   hyper-key setup
     - set up new binding to toggle chording
