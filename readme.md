@@ -23,48 +23,41 @@ Middle + Scroll = Window switcher
 
 ## Getting started
 
+0. read up on the [known issues](#known-issues) for your platform. 
+
 ### Windows
 
 1. Install [AutoHotkey](https://www.autohotkey.com/).
-
 2. Edit `windows/mouse-chording.ahk` to suit your needs
-
 3. Run `windows/mouse-chording.ahk` as administrator.
 
 
 ### MacOS
 
 1. Install [Hammerspoon](https://www.hammerspoon.org/)
-
 2. Copy `macos/init.lua` to `~/.hammerspoon/init.lua`
-
 3. Run Hammerspoon
 
 
 ### Linux (X11)
 
 1. install `evtest`
-
-2. run `evtest` and make note of your usb mouse, something like
-   `/dev/input/event3`
-
+2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
 3. make sure `mouse-chording.pl` is executable with `chmod +x mouse-choring.pl`
-
-4. run `evtest --grav /dev/input/event3 | ./mouse-chording.pl`
-
+4. run `evtest --grab /dev/input/event3 | ./mouse-chording.pl`
 
 If the mouse movements are noticibly slow, the C version might be a better
 option: 
 
-1. install the X11 development library
-
-2. compile with `./compile.sh`
-
-3. run with `run.sh`
+1. install `evtest`
+2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
+3. install the X11 development library for your distribution
+4. install `gcc` or another C compiler
+5. compile with this command `gcc mouse-chording.c -o mouse-chording.exe -lX11` 
+6. run `evtest --grab /dev/input/event3 | ./mouse-chording.exe`
 
 
 ## known issues
-
 
 To preserve the normal function of the mouse buttons - when pressed
 individually - the code has to issue click commands when a mouse button is
