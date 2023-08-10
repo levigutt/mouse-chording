@@ -62,8 +62,8 @@ we get something.
 To preserve the normal function of the mouse buttons - when pressed
 individually - the code has to issue click events when a mouse button is
 released (if no chord was executed). This causes things like the context menu
-from appearing on release rather than on press. Hold and drag with Middle or
-Right button will not work for the same reason.
+to appear on release rather than on press. Hold and drag with Middle or Right
+button will not work for the same reason.
 
 ### Windows issues
 
