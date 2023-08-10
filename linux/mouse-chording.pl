@@ -1,13 +1,10 @@
 #!/usr/bin/perl -wlnF/\s|,/
+# xinput set-button-map {id} 0 0 0 0 0 0 0 0 0 0
 # sudo evtest /dev/input/event19 | ./mouse-chording.pl
-use Time::HiRes qw<time>;
 
 BEGIN
 {
-    our $max_lag      = 0.001; # increase for precision, decrease for speed
     our %btns         = (272 => 0, 273 => 0, 274 => 0);
-    our $mouse_x      = 0;
-    our $mouse_y      = 0;
     our $active_chord = 0;
     our $alt_down     = 0;
 
@@ -25,29 +22,9 @@ next unless -1 == index $_, 'SYN';
 # extract event values
 my ($time, $type, $code, $value) = @F[2, 5, 9, 13];
 
-# skip unused codes
+# skip mouse movements and hi-res scroll
 next if $code == 11;
-
-# emulate mouse movement
-if ($type == 2 && !($code == 8 || $code == 11))
-{
-    # mouse acceleration...
-    $value = int($value * (25 < abs($value) < 50  ? 1.125
-                              : abs($value) < 100 ? 1.25
-                                                  : 1.5));
-
-    # batch movements
-    $mouse_x += $value if $code == 0;
-    $mouse_y += $value if $code == 1;
-
-    # run batched movements when lagging less than limit
-    if ($time > (time)-$max_lag)
-    {
-        system "xdotool mousemove_relative -- $mouse_x $mouse_y&";
-        $mouse_x = $mouse_y = 0;
-    }
-    next;
-}
+next if $type == 2 && $code != 8;
 
 # keep track of pressed buttons
 $btns{$code} = $value;
@@ -83,10 +60,10 @@ elsif ($code == 8 && !$btns{$middle_code})
 # only do chords when button is pressed (not released)
 next unless $value;
 
-# Left + Middle = Snarf
+# Left + Middle = Cut
 if ($btns{$left_code} && $code == $middle_code)
 {
-    system "xdotool mouseup 1&"; # prevent accidental selection after snarf
+    system "xdotool mouseup 1&"; # prevent accidental selection
     system "xdotool key ctrl+c key ctrl+x&";
     $active_chord = 1;
     next;
@@ -95,6 +72,7 @@ if ($btns{$left_code} && $code == $middle_code)
 # Left + Right = Paste
 if ($btns{$left_code} && $code == $right_code)
 {
+    system "xdotool mouseup 1&"; # prevent accidental selection
     system "xdotool key ctrl+v&";
     $active_chord = 1;
     next;
@@ -108,7 +86,7 @@ if ($btns{$middle_code} && $code == $left_code)
     next;
 }
 
-# Middle + Right = Return
+# Middle + Right = Space
 if ($btns{$middle_code} && $code == $right_code)
 {
     system "xdotool key space&";
