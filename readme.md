@@ -1,8 +1,8 @@
 # Mouse chording
 
-The basic idea is that you hold down a mouse button and then trigger some
-custom action by clicking another mouse button. Clicking the mouse buttons
-individually still works as normally.
+The basic idea is that while holding down a mouse button, the other mouse
+buttons become shortcuts for custom actions. Like cut, paste, or anything you'd
+like. It's a powerful feature that can increase productivty and reduce fatique.
 
 I first became aware of this when I tried Acme (the plan9 editor), with its
 [mouse chords](http://acme.cat-v.org/mouse). Using Acme as my editor did not
@@ -10,6 +10,8 @@ work out for me, but I could not get the mouse chords out of my head, I wanted
 to have such chords system wide.
 
 ## Chords
+
+These are the default mouse chords, but they can be customized to anything.
 
 ```
 Left + Middle   = Cut
@@ -21,9 +23,12 @@ Middle + Right  = Space
 Middle + Scroll = Window switcher
 ```
 
+Why cut instead of copy? Because Cut + Paste = Copy, that way it is more
+useful.
+
 ## Getting started
 
-0. read up on the [known issues](#known-issues) for your platform. 
+0. read up on the [known issues](#Known-issues) for your platform.
 
 ### Windows
 
@@ -41,68 +46,57 @@ Middle + Scroll = Window switcher
 
 ### Linux (X11)
 
-1. install `evtest`
+1. install `xinput` and `evtest`
 2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
-3. make sure `mouse-chording.pl` is executable with `chmod +x mouse-choring.pl`
-4. run `evtest --grab /dev/input/event3 | ./mouse-chording.pl`
+3. run `xinput -list` and make note of the device id
+4. run `xinput set-button-map {id} 0 0 0 0 0 0 0 0 0 0` (10 zeroes)
+5. run `evtest /dev/input/event3 | ./mouse-chording.pl`
 
-If the mouse movements are noticibly slow, the C version might be a better
-option: 
-
-1. install `evtest`
-2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
-3. install the X11 development library for your distribution
-4. install `gcc` or another C compiler
-5. compile with this command `gcc mouse-chording.c -o mouse-chording.exe -lX11`
-6. run `evtest --grab /dev/input/event3 | ./mouse-chording.exe`
-
-## known issues
+## Known issues
 
 To get a reliable Cut, `Left+Middle` is implemented as `Ctrl+C Ctrl+X`. This is
 because when doing `Ctrl+X` on text that cannot be cut, like the text on a
-website, the text will not be copied.
+website or in a PDF, the text will not be copied. So we copy first to make sure
+we get something.
 
 To preserve the normal function of the mouse buttons - when pressed
-individually - the code has to issue click commands when a mouse button is
+individually - the code has to issue click events when a mouse button is
 released (if no chord was executed). This causes things like the context menu
-from appearing on release rather than on press.
-
-Applications that allow you to select text using middle or right mouse buttons
-will not work for the same reason. There is no "hold and drag" using any other
-mouse button than the left button.
-
-### MacOS issues
-
-Mouse events are issues very differently for the touchpad and a usb mouse.
-using the touchpad and usb mouse interchangably can therefore cause the
-application to enter an undefiend state and become unresponsive. 
-
-This can be fixed easily by disabling the mouse chords when not using a usb
-mouse.
-
-Since Mac has a different Window Switcher, which switches between applications
-and windows separately (Alt+Tab = Switch app, Alt+NonUSBackslash = Switch
-window for current app) - this version has a separate set up for window
-switching on `Right + Scroll`
-
-### Linux issues
-
-This works by interrupting all events for the mouse, including movements. The
-movements therefore must be reissued, which causes mouse accelleration and
-other mouse settings in your desktop environment not to work.
-
-This may also cause the mouse movements to feel slow, especially on computers
-with limited resources. to overcome this, I've made a version in C, which runs
-faster, but you'll have to compile it yourself.
+from appearing on release rather than on press. Hold and drag with Middle or
+Right button will not work for the same reason.
 
 ### Windows issues
 
-Chords involving modifier keys does not work in some windows applications,
-typically older style applications. The cause is unknown, but it does not seem
-to be a problem in more modern applications. One example of this is Putty.
+Some windows applications will not allow shortcuts using modifier keys to work
+while a mouse button is pressed. In these applications, mouse chording simply
+won't work. It seems to only be a problem in older applications (like Putty).
 
-Running without admin rights will cause it not to work when interacting with an
-application that does run with admin rights.
+Running AutoHotkey without admin rights will cause it not to work when
+interacting with application that run with admin rights. So just make sure you
+run it as admin if you experience issues.
+
+### MacOS issues
+
+The touchpad issues mouse events very differently from a USB mouse. Using the
+touchpad can therefore cause the app to enter an undefined state and fail to
+run chords or run them incorrectly.
+
+Avoid this problem by disabling mouse chording when swithing to the touchpad.
+
+MacOS has a different window switcher than Windows and Linux, `Alt+Tab` will
+switch between applications instead of windows. And `Alt+NonUSBackslash` (the
+key above Tab) will switch between windows for the current application. To
+accound for this, the Mac version will switchi apps with `Middle+Scroll` and
+between windows with `Right+Scroll`.
+
+### Linux issues
+
+The `xinput` remapping will cause the buttons for the usb mouse to not work
+unless the script is running. re-enable the mouse buttons with this command:
+`xinput set-button-map {id} 1 2 3 4 5 6 7 8 9 10`
+
+Since the solution depends on a specific device, it will crash and require a
+restart if the device is unplugged.
 
 ## what computer mouse to use?
 
@@ -122,9 +116,8 @@ Here are some other similar options:
 ## todo
 
 - [x] move each platform version to separate directory
-- [ ] refactor mac version to follow similar logic as the others, and remve
+- [x] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
+- [ ] refactor mac version to follow similar logic as the others, and remove
   hyper-key setup
-    - set up new binding to toggle chording
 - [ ] add options for overriding chords for specific applications (like
   terminal, where `Ctrl+C` should be `Ctrl+Shif+C`)
-- [ ] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
