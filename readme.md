@@ -116,8 +116,6 @@ Here are some other similar options:
 ## todo
 
 - [x] move each platform version to separate directory
-- [x] figure out how to only grab mouse buttons (branch `grabdevice`) on linux
-- [ ] refactor mac version to follow similar logic as the others, and remove
-  hyper-key setup
-- [ ] add options for overriding chords for specific applications (like
-  terminal, where `Ctrl+C` should be `Ctrl+Shif+C`)
+- [x] figure out how to retain normal mouse movements on linux
+- [ ] refactor mac version to follow similar logic as the others
+- [ ] add option for defining unique chords by application
