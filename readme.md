@@ -117,5 +117,7 @@ Here are some other similar options:
 
 - [x] move each platform version to separate directory
 - [x] figure out how to retain normal mouse movements on linux
-- [ ] refactor mac version to follow similar logic as the others
+- [ ] refactor mac version to follow similar logic as the others
 - [ ] add option for defining unique chords by application
+
+
