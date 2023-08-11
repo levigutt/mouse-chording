@@ -34,16 +34,13 @@ useful.
 ### Windows
 
 1. Install [AutoHotkey](https://www.autohotkey.com/).
-2. Edit `windows/mouse-chording.ahk` to suit your needs
-3. Run `windows/mouse-chording.ahk` as administrator.
-
+2. Run `windows/mouse-chording.ahk` as administrator.
 
 ### MacOS
 
 1. Install [Hammerspoon](https://www.hammerspoon.org/)
-2. Copy `macos/init.lua` to `~/.hammerspoon/init.lua`
+2. Copy or link `macos/init.lua` to `~/.hammerspoon/init.lua`
 3. Run Hammerspoon
-
 
 ### Linux (X11)
 
