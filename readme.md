@@ -101,7 +101,7 @@ Avoid this problem by disabling mouse chording when swithing to the touchpad.
 MacOS has a different window switcher than Windows and Linux, `Alt+Tab` will
 switch between applications instead of windows. And `Alt+NonUSBackslash` (the
 key above Tab) will switch between windows for the current application. To
-accound for this, the Mac version will switchi apps with `Middle+Scroll` and
+account for this, the Mac version will switch between apps with `Middle+Scroll` and
 between windows with `Right+Scroll`.
 
 ### Linux issues
