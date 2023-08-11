@@ -52,6 +52,21 @@ useful.
 4. run `xinput set-button-map {id} 0 0 0 0 0 0 0 0 0 0` (10 zeroes)
 5. run `evtest /dev/input/event3 | ./mouse-chording.pl`
 
+## What computer mouse to use?
+
+I've found that this works best with a three button mouse where the middle
+button is a proper button and not hidden under the scroll wheel.
+
+This is kind of rare, but you can probably find one using the phrase
+"CAD mouse".
+
+This is the mouse I use: https://amzn.asia/d/gwQMNqZ
+
+Here are some other good options:
+- https://a.co/d/eoXpdmS
+- https://a.co/d/1f33M6c
+- https://amzn.asia/d/0yckABy
+
 ## Known issues
 
 To get a reliable Cut, `Left+Middle` is implemented as `Ctrl+C Ctrl+X`. This is
@@ -97,21 +112,6 @@ unless the script is running. re-enable the mouse buttons with this command:
 
 Since the solution depends on a specific device, it will crash and require a
 restart if the device is unplugged.
-
-## what computer mouse to use?
-
-I've found that this works best with a three button mouse where the middle
-button is a proper button and not hidden under the scroll wheel.
-
-This is not easy to come by, but you can probably find one using the phrase
-"CAD mouse".
-
-This is the mouse I use: https://amzn.asia/d/gwQMNqZ
-
-Here are some other similar options:
-- https://a.co/d/eoXpdmS
-- https://a.co/d/1f33M6c
-- https://amzn.asia/d/0yckABy
 
 ## todo
 
