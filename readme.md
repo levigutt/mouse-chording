@@ -89,11 +89,11 @@ interacting with application that do run with admin rights.
 
 ### MacOS issues
 
-The touch pad issues mouse events very differently from a USB mouse. Using the
-touch pad can therefore cause the app to enter an undefined state and fail to
+The touchpad issues mouse events very differently from a USB mouse. Using the
+touchpad can therefore cause the app to enter an undefined state and fail to
 run chords or run them incorrectly.
 
-Avoid this problem by disabling mouse chording when switching to the touch pad.
+Avoid this problem by disabling mouse chording when switching to the touchpad.
 
 MacOS has a different window switcher than Windows and Linux, `Alt+Tab` will
 switch between applications instead of windows. And `Alt+NonUSBackslash` (the
