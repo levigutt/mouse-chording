@@ -28,7 +28,7 @@ useful.
 
 ## Getting started
 
-0. read up on the [known issues](#Known-issues) for your platform.
+0. read up on the [known issues](#known-issues) for your platform.
 
 ### Windows
 
