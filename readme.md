@@ -115,6 +115,7 @@ restart if the device is unplugged.
 - [x] move each platform version to separate directory
 - [x] figure out how to retain normal mouse movements on Linux
 - [ ] refactor mac version to follow similar logic as the others
+- [ ] define mouse chords in a config file
 - [ ] add option for defining unique chords by application
 
 
