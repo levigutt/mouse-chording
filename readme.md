@@ -2,7 +2,8 @@
 
 The basic idea is that while holding down a mouse button, the other mouse
 buttons become shortcuts for custom actions. Like cut, paste, or anything you'd
-like. It's a powerful feature that can increase productivty and reduce fatique.
+like. It's a powerful feature that can increase productivity and reduce
+fatigue.
 
 I first became aware of this when I tried Acme (the plan9 editor), with its
 [mouse chords](http://acme.cat-v.org/mouse). Using Acme as my editor did not
@@ -47,7 +48,7 @@ useful.
 ### Linux (X11)
 
 1. install `xinput` and `evtest`
-2. run `evtest` and make note of your usb mouse, something like `/dev/input/event3`
+2. run `evtest` and make note of your USB mouse, something like `/dev/input/event3`
 3. run `xinput -list` and make note of the device id
 4. run `xinput set-button-map {id} 0 0 0 0 0 0 0 0 0 0` (10 zeroes)
 5. run `evtest /dev/input/event3 | ./mouse-chording.pl`
@@ -91,21 +92,21 @@ interacting with application that do run with admin rights.
 
 ### MacOS issues
 
-The touchpad issues mouse events very differently from a USB mouse. Using the
-touchpad can therefore cause the app to enter an undefined state and fail to
+The touch pad issues mouse events very differently from a USB mouse. Using the
+touch pad can therefore cause the app to enter an undefined state and fail to
 run chords or run them incorrectly.
 
-Avoid this problem by disabling mouse chording when swithing to the touchpad.
+Avoid this problem by disabling mouse chording when switching to the touch pad.
 
 MacOS has a different window switcher than Windows and Linux, `Alt+Tab` will
 switch between applications instead of windows. And `Alt+NonUSBackslash` (the
 key above Tab) will switch between windows for the current application. To
-account for this, the Mac version will switch between apps with `Middle+Scroll` and
-between windows with `Right+Scroll`.
+account for this, the Mac version will switch between apps with `Middle+Scroll`
+and between windows with `Right+Scroll`.
 
 ### Linux issues
 
-The `xinput` remapping will cause the buttons for the usb mouse to not work
+The `xinput` remapping will cause the buttons for the USB mouse to not work
 unless the script is running. re-enable the mouse buttons with this command:
 `xinput set-button-map {id} 1 2 3 4 5 6 7 8 9 10`
 
@@ -115,7 +116,7 @@ restart if the device is unplugged.
 ## todo
 
 - [x] move each platform version to separate directory
-- [x] figure out how to retain normal mouse movements on linux
+- [x] figure out how to retain normal mouse movements on Linux
 - [ ] refactor mac version to follow similar logic as the others
 - [ ] add option for defining unique chords by application
 
