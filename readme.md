@@ -87,8 +87,7 @@ while a mouse button is pressed. In these applications, mouse chording simply
 won't work. It seems to only be a problem in older applications (like Putty).
 
 Running AutoHotkey without admin rights will cause it not to work when
-interacting with application that run with admin rights. So just make sure you
-run it as admin if you experience issues.
+interacting with application that do run with admin rights. 
 
 ### MacOS issues
 
