@@ -1,18 +1,21 @@
 #!/usr/bin/perl -wlnF/\s|,/
 # xinput set-button-map {id} 0 0 0 0 0 0 0 0 0 0
 # sudo evtest /dev/input/event19 | ./mouse-chording.pl
+use strict;
 
+our (%btns, $active_chord, $alt_down,
+$left_code, $right_code, $middle_code, $scroll_code);
 BEGIN
 {
-    our %btns         = (272 => 0, 273 => 0, 274 => 0);
-    our $active_chord = 0;
-    our $alt_down     = 0;
+    %btns         = (272 => 0, 273 => 0, 274 => 0);
+    $active_chord = 0;
+    $alt_down     = 0;
 
     # mouse button codes
-    our $left_code   = 272;
-    our $right_code  = 273;
-    our $middle_code = 274;
-    our $scroll_code = 8;
+    $left_code   = 272;
+    $right_code  = 273;
+    $middle_code = 274;
+    $scroll_code = 8;
 }
 
 # only handle events
