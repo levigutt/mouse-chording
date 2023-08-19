@@ -1,13 +1,12 @@
--- left+middle       = snarf/cut (cmd+c, cmd+x)
--- left+right        = paste     (cmd+v)
--- right+left        = undo      (cmd+z)
--- right+middle      = redo      (cmd+shift+z)
--- middle+left       = return    (send return keypress)
--- middle+right      = space     (send space keypress)
+-- left+middle       = cut      (cmd+c, cmd+x)
+-- left+right        = paste    (cmd+v)
+-- right+left        = undo     (cmd+z)
+-- right+middle      = redo     (cmd+shift+z)
+-- middle+left       = return   (send return keypress)
+-- middle+right      = space    (send space keypress)
 --
--- middle+scrollDown = next app  (cmd+tab)
--- middle+scrollUp   = prev app  (cmd+shift+tab)
--- middleUp          = return    (if app switching) 
+-- middle+scrollDown = next app (cmd+tab)
+-- middle+scrollUp   = prev app (cmd+shift+tab)
 
 local eventtap   = require("hs.eventtap")
 local eventTypes = eventtap.event.types
@@ -18,6 +17,7 @@ local logger     = hs.logger.new("mouse chording", "nothing")
 local LMB
 local MMB
 local RMB
+local keepLMB
 local pureMMB
 local stopMMB
 local pureRMB
@@ -52,7 +52,8 @@ end)
 
 local leftUp = hs.eventtap.new({eventTypes.leftMouseUp}, function(e)
     logger:d("leftUp")
-    LMB = false
+    LMB = keepLMB
+    keepLMB = false
     return false
 end)
 
@@ -68,13 +69,16 @@ local middleDown = hs.eventtap.new({eventTypes.otherMouseDown}, function(e)
 
     -- left+middle = copy and cut
     if LMB then
-       logger:d("snarf")
-       return true, {
-            eventtap.event.newKeyEvent({"cmd"}, "c", true),
-            eventtap.event.newKeyEvent({"cmd"}, "c", false),
-            eventtap.event.newKeyEvent({"cmd"}, "x", true),
-            eventtap.event.newKeyEvent({"cmd"}, "x", false),
-        } 
+        logger:d("cut")
+        keepLMB = true
+        local mousePos = mouse.absolutePosition()
+        return true, {
+             eventtap.event.newMouseEvent(eventTypes.leftMouseUp, mousePos),
+             eventtap.event.newKeyEvent({"cmd"}, "c", true),
+             eventtap.event.newKeyEvent({"cmd"}, "c", false),
+             eventtap.event.newKeyEvent({"cmd"}, "x", true),
+             eventtap.event.newKeyEvent({"cmd"}, "x", false),
+         } 
     end
 
     -- right+middle = redo
@@ -100,8 +104,8 @@ local middleUp = hs.eventtap.new({eventTypes.otherMouseUp}, function(e)
         stopMMB = false
         cycleApps = false
         return false, {
-            eventtap.event.newKeyEvent({}, "return", true),
-            eventtap.event.newKeyEvent({}, "return", false),
+            eventtap.event.newKeyEvent(hs.keycodes.map.cmd, true),
+            eventtap.event.newKeyEvent(hs.keycodes.map.cmd, false),
         }
     end
 
@@ -219,12 +223,10 @@ end)
 function mouseStart()
     logger:d("mouseStart")
 
-    --USBMouseStopsTrackpad requires reboot
-    hs.execute("defaults write com.apple.AppleMultiTouchTrackpad USBMouseStopsTrackpad 1")
-
     LMB        = false
     MMB        = false
     RMB        = false
+    keepLMB    = false
     pureRMB    = false
     stopRMB    = false
     pureMMB    = false
@@ -242,9 +244,6 @@ end
 
 function mouseStop()
     logger:d("mouseStop")
-
-    --USBMouseStopsTrackpad requires reboot
-    hs.execute("defaults write com.apple.AppleMultiTouchTrackpad USBMouseStopsTrackpad 0")
 
     leftDown:stop()
     leftUp:stop()
