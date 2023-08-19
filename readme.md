@@ -95,11 +95,13 @@ run chords or run them incorrectly.
 
 Avoid this problem by disabling mouse chording when switching to the touchpad.
 
-MacOS has a different window switcher than Windows and Linux, `Alt+Tab` will
-switch between applications instead of windows. And `Alt+NonUSBackslash` (the
+MacOS has a different window switcher than Windows and Linux, `Cmd+Tab` will
+switch between applications instead of windows, and `Cmd+GraveAccent` (the
 key above Tab) will switch between windows for the current application. To
 account for this, the Mac version will switch between apps with `Middle+Scroll`
 and between windows with `Right+Scroll`.
+
+An alternative solution to this, is to install [AltTab](https://alt-tab-macos.netlify.app/) which is an app-switcher akin to the Windows app-switcher, for MacOS.
 
 ### Linux issues
 
