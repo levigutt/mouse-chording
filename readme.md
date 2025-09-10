@@ -58,9 +58,9 @@ button is a proper button and not hidden under the scroll wheel.
 This is kind of rare, but you can probably find one using the phrase
 "CAD mouse".
 
-This is the mouse I use: https://amzn.asia/d/gwQMNqZ
+This is the mouse I use: https://amazon.co.jp/dp/B078LYHV3P
 
-Here are some other good options:
+Here are some other options:
 - https://a.co/d/eoXpdmS
 - https://a.co/d/1f33M6c
 - https://amzn.asia/d/0yckABy
